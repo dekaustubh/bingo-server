@@ -3,9 +3,9 @@ package com.dekaustubh.repositories
 import com.dekaustubh.constants.Separator
 import com.dekaustubh.models.Match
 import com.dekaustubh.models.Matches
+import com.dekaustubh.utils.TimeUtil
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.lang.StringBuilder
 
 /**
  * Interface to interact with [Match] data.
@@ -43,7 +43,7 @@ class MatchRepositoryImpl() : MatchRepository {
             key = (Matches.insert {
                 it[created_by] = createdBy
                 it[room_id] = roomId
-                it[created_at] = System.currentTimeMillis()
+                it[created_at] = TimeUtil.getCurrentUtcMillis()
             } get Matches.id)
 
             commit()
@@ -77,8 +77,8 @@ class MatchRepositoryImpl() : MatchRepository {
                 if (winnerId != 0L) it[winner_id] = winnerId
                 it[points] = winnerPoints
                 it[players] = toStringPlayers(userIds)
-                it[created_at] = System.currentTimeMillis()
-                it[updated_at] = System.currentTimeMillis()
+                it[created_at] = TimeUtil.getCurrentUtcMillis()
+                it[updated_at] = TimeUtil.getCurrentUtcMillis()
             }
             commit()
         }

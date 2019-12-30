@@ -5,6 +5,7 @@ import com.dekaustubh.models.Token
 import com.dekaustubh.models.Tokens
 import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.Users
+import com.dekaustubh.utils.TimeUtil
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -52,7 +53,7 @@ class UserRepositoryImpl() : UserRepository {
             key = Users.insert {
                 it[name] = userName
                 it[email] = userEmail
-                it[created_at] = System.currentTimeMillis()
+                it[created_at] = TimeUtil.getCurrentUtcMillis()
             } get Users.id
             commit()
         }
@@ -65,7 +66,7 @@ class UserRepositoryImpl() : UserRepository {
                     uuid = UUID.randomUUID().toString()
                     it[token] = uuid
                     it[user_id] = u.id
-                    it[created_at] = System.currentTimeMillis()
+                    it[created_at] = TimeUtil.getCurrentUtcMillis()
                 }
                 commit()
             }
@@ -107,7 +108,7 @@ class UserRepositoryImpl() : UserRepository {
     override suspend fun removeUserById(id: Long): Boolean {
         val user = dbQuery {
             Users.update({ Users.id eq id }) {
-                it[deleted_at] = System.currentTimeMillis()
+                it[deleted_at] = TimeUtil.getCurrentUtcMillis()
             }
         }
 
