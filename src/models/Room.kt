@@ -21,7 +21,7 @@ data class Room(
 object Rooms : Table() {
     val id = long("id").primaryKey().autoIncrement()
     val name = varchar("name", 255)
-    val leaderboard_id = long("id")
+    val leaderboard_id = long("leaderboard_id")
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)

@@ -1,5 +1,6 @@
 package com.dekaustubh.routes
 
+import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.Error
 import com.dekaustubh.models.Match
 import com.dekaustubh.models.MatchResult
@@ -8,6 +9,7 @@ import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.UserResult
 import com.dekaustubh.repositories.MatchRepository
 import com.dekaustubh.repositories.UserRepository
+import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
@@ -17,9 +19,13 @@ import io.ktor.routing.*
 /**
  * All match related routes.
  */
-fun Routing.matchRoutes(matchRepository: MatchRepository) {
+fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRepository) {
     route("/api/v1") {
         route("/match") {
+            intercept(ApplicationCallPipeline.Call) {
+                userInterceptor(userRepository)
+            }
+
             post("/create") {
                 val match = call.receive<Match>()
                 // TODO.. change match.createdBy to basic auth.

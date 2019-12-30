@@ -1,5 +1,6 @@
 package com.dekaustubh.repositories
 
+import com.dekaustubh.constants.Separator
 import com.dekaustubh.models.Match
 import com.dekaustubh.models.Matches
 import org.jetbrains.exposed.sql.*
@@ -97,13 +98,13 @@ class MatchRepositoryImpl() : MatchRepository {
         val builder = StringBuilder()
         players.forEachIndexed { index, id ->
             builder.append(id)
-            if (index < players.size - 1) builder.append(",")
+            if (index < players.size - 1) builder.append(Separator.COMMA)
         }
         return builder.toString()
     }
 
     private fun toPlayers(players: String): MutableList<Long> {
-        val list = players.split(",")
+        val list = players.split(Separator.COMMA)
         val userIds = mutableListOf<Long>()
         list.forEach { userIds.add(it.toLong()) }
         return userIds

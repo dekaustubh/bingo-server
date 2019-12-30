@@ -3,7 +3,6 @@ package com.dekaustubh.repositories
 import com.dekaustubh.db.DatabaseFactory
 import com.dekaustubh.models.Room
 import com.dekaustubh.models.Rooms
-import com.dekaustubh.models.User.Users
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -83,7 +82,7 @@ class RoomRepositoryImpl() : RoomRepository {
 
     override suspend fun removeRoomById(id: Long): Boolean {
         val room = DatabaseFactory.dbQuery {
-            Users.update({ Rooms.id eq id }) {
+            Rooms.update({ Rooms.id eq id }) {
                 it[deleted_at] = System.currentTimeMillis()
             }
         }

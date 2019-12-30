@@ -1,7 +1,12 @@
 package com.dekaustubh
 
 import com.dekaustubh.db.DatabaseFactory
+import com.dekaustubh.repositories.MatchRepositoryImpl
+import com.dekaustubh.repositories.RoomRepository
+import com.dekaustubh.repositories.RoomRepositoryImpl
 import com.dekaustubh.repositories.UserRepositoryImpl
+import com.dekaustubh.routes.matchRoutes
+import com.dekaustubh.routes.roomsRoutes
 import com.dekaustubh.routes.userRoutes
 import io.ktor.application.*
 import io.ktor.response.*
@@ -40,7 +45,10 @@ fun Application.module(testing: Boolean = false) {
 
     DatabaseFactory.init()
     install(Routing) {
-        userRoutes(UserRepositoryImpl())
+        val userRepository = UserRepositoryImpl()
+        userRoutes(userRepository)
+        roomsRoutes(RoomRepositoryImpl(), userRepository)
+        matchRoutes(MatchRepositoryImpl(), userRepository)
     }
 
     /*routing {

@@ -1,10 +1,13 @@
 package com.dekaustubh.repositories
 
 import com.dekaustubh.db.DatabaseFactory.dbQuery
+import com.dekaustubh.models.Token
+import com.dekaustubh.models.Tokens
 import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.Users
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
 /**
  * Interface to interact with user data.
@@ -34,19 +37,49 @@ interface UserRepository {
      * @return [true] if user is deleted, false otherwise.
      */
     suspend fun removeUserById(id: Long): Boolean
+
+    /**
+     * Fetches user with specific [userToken].
+     * @return [User] if found, null otherwise.
+     */
+    suspend fun getUserByToken(userToken: String): User?
 }
 
 class UserRepositoryImpl() : UserRepository {
     override suspend fun addUser(userName: String, userEmail: String): User? {
+        var key = 0L
         transaction {
-            Users.insert {
+            key = Users.insert {
                 it[name] = userName
                 it[email] = userEmail
                 it[created_at] = System.currentTimeMillis()
-            }
+            } get Users.id
             commit()
         }
-        return getUserByEmail(userEmail)
+
+        val user = getUserById(key)
+        var uuid = ""
+        user?.let { u ->
+            transaction {
+                Tokens.insert {
+                    uuid = UUID.randomUUID().toString()
+                    it[token] = uuid
+                    it[user_id] = u.id
+                    it[created_at] = System.currentTimeMillis()
+                }
+                commit()
+            }
+        }
+        return if (user != null) {
+            User(
+                user.id,
+                user.name,
+                user.email,
+                uuid
+            )
+        } else {
+            null
+        }
     }
 
     override suspend fun getUserById(id: Long): User? {
@@ -81,10 +114,36 @@ class UserRepositoryImpl() : UserRepository {
         return user != null
     }
 
+    override suspend fun getUserByToken(userToken: String): User? {
+        var user: User? = null
+        var token: Token? = null
+        transaction {
+            token = Tokens
+                .select { (Tokens.token eq userToken) and (Tokens.deleted_at eq 0) }
+                .mapNotNull { toToken(it) }
+                .singleOrNull()
+
+            user = (Users innerJoin Tokens)
+                .slice(Users.columns)
+                .select { (Users.id.eq(Tokens.user_id) and Tokens.token.eq(token?.token ?: "---")) }
+                .mapNotNull { toUser(it) }
+                .singleOrNull()
+
+        }
+        return user
+    }
+
     private fun toUser(row: ResultRow): User =
         User(
             row[Users.id],
             row[Users.name],
             row[Users.email]
+        )
+
+    private fun toToken(row: ResultRow): Token =
+        Token(
+            row[Tokens.id],
+            row[Tokens.token],
+            row[Tokens.user_id]
         )
 }

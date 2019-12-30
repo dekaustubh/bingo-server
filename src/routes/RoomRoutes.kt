@@ -1,12 +1,16 @@
 package com.dekaustubh.routes
 
+import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.Error
 import com.dekaustubh.models.Room
 import com.dekaustubh.models.RoomResult
 import com.dekaustubh.models.Success
 import com.dekaustubh.repositories.RoomRepository
+import com.dekaustubh.repositories.UserRepository
+import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
+import io.ktor.request.path
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Routing
@@ -17,9 +21,13 @@ import io.ktor.routing.route
 /**
  * All users related routes.
  */
-fun Routing.roomsRoutes(roomRepository: RoomRepository) {
+fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepository) {
     route("/api/v1") {
         route("/room") {
+            intercept(ApplicationCallPipeline.Call) {
+                userInterceptor(userRepository)
+            }
+
             post("/create") {
                 val room = call.receive<Room>()
                 val addedUser = roomRepository.createRoom(room.name)
