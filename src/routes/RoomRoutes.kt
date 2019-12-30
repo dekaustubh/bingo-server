@@ -1,10 +1,10 @@
 package com.dekaustubh.routes
 
 import com.dekaustubh.models.Error
+import com.dekaustubh.models.Room
+import com.dekaustubh.models.RoomResult
 import com.dekaustubh.models.Success
-import com.dekaustubh.models.User
-import com.dekaustubh.models.UserResult
-import com.dekaustubh.repositories.UserRepository
+import com.dekaustubh.repositories.RoomRepository
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
@@ -17,26 +17,26 @@ import io.ktor.routing.route
 /**
  * All users related routes.
  */
-fun Routing.userRoutes(userRepository: UserRepository) {
+fun Routing.roomsRoutes(roomRepository: RoomRepository) {
     route("/api/v1") {
-        route("/user") {
-            post("/register") {
-                val user = call.receive<User>()
-                val addedUser = userRepository.addUser(user.name, user.email)
+        route("/room") {
+            post("/create") {
+                val room = call.receive<Room>()
+                val addedUser = roomRepository.createRoom(room.name)
                 addedUser?.let {
                     call.respond(
                         HttpStatusCode.Created,
-                        UserResult(
-                            success = Success(success = "User created"),
-                            user = it
+                        RoomResult(
+                            success = Success(success = "Room created"),
+                            room = it
                         )
                     )
                 } ?: run {
                     call.respond(
                         HttpStatusCode.InternalServerError,
-                        UserResult(
-                            error = Error(error = "Could not create user"),
-                            user = null
+                        RoomResult(
+                            error = Error(error = "Could not create room"),
+                            room = null
                         )
                     )
                 }
@@ -44,21 +44,21 @@ fun Routing.userRoutes(userRepository: UserRepository) {
 
             get("/{id}") {
                 val id = call.parameters["id"]
-                val user = userRepository.getUserById(id?.toLong() ?: 0L)
-                user?.let {
+                val room = roomRepository.getRoomById(id?.toLong() ?: 0L)
+                room?.let {
                     call.respond(
                         HttpStatusCode.OK,
-                        UserResult(
-                            success = Success(success = "User fetched"),
-                            user = it
+                        RoomResult(
+                            success = Success(success = "Room fetched"),
+                            room = it
                         )
                     )
                 } ?: run {
                     call.respond(
                         HttpStatusCode.NotFound,
-                        UserResult(
-                            error = Error(error = "User not present"),
-                            user = null
+                        RoomResult(
+                            error = Error(error = "Room not present"),
+                            room = null
                         )
                     )
                 }

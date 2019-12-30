@@ -1,23 +1,25 @@
 package com.dekaustubh.models
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.jetbrains.exposed.sql.Table
 
 /**
- * Data model for User.
+ * Data model for Room object.
  */
-data class User(
+data class Room(
     val id: Long,
     val name: String,
-    val email: String
+    @JsonProperty("leaderboard_id")
+    val leaderboardId: Long
 )
 
 /**
- * User database table.
+ * Room database table.
  */
-object Users : Table() {
+object Rooms : Table() {
     val id = long("id").primaryKey().autoIncrement()
     val name = varchar("name", 255)
-    val email = varchar("email", 255)
+    val leaderboard_id = long("id")
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)

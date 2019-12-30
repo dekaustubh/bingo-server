@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
- * Interface to interfat with user data.
+ * Interface to interact with user data.
  */
 interface UserRepository {
     /**
