@@ -2,8 +2,8 @@ package com.dekaustubh.routes
 
 import com.dekaustubh.models.Error
 import com.dekaustubh.models.Success
-import com.dekaustubh.models.User
-import com.dekaustubh.models.UserResult
+import com.dekaustubh.models.User.User
+import com.dekaustubh.models.User.UserResult
 import com.dekaustubh.repositories.UserRepository
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode

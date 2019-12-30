@@ -1,6 +1,6 @@
 package com.dekaustubh.db
 
-import com.dekaustubh.models.Users
+import com.dekaustubh.models.User.Users
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction

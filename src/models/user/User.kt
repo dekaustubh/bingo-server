@@ -1,4 +1,4 @@
-package com.dekaustubh.models
+package com.dekaustubh.models.User
 
 import org.jetbrains.exposed.sql.Table
 

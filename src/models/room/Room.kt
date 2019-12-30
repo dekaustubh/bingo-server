@@ -1,4 +1,4 @@
-package com.dekaustubh.models
+package com.dekaustubh.models.room
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.jetbrains.exposed.sql.Table

@@ -1,11 +1,10 @@
 package com.dekaustubh.repositories
 
 import com.dekaustubh.db.DatabaseFactory
-import com.dekaustubh.models.Room
-import com.dekaustubh.models.Rooms
-import com.dekaustubh.models.Users
+import com.dekaustubh.models.room.Room
+import com.dekaustubh.models.room.Rooms
+import com.dekaustubh.models.User.Users
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
@@ -53,7 +52,7 @@ class RoomRepositoryImpl() : RoomRepository {
                 it[created_at] = System.currentTimeMillis()
                 it[leaderboard_id] = 0
             } get Rooms.id)
-            
+
             commit()
         }
         return getRoomById(key)
@@ -104,5 +103,10 @@ class RoomRepositoryImpl() : RoomRepository {
         return getRoomById(id)
     }
 
-    private fun toRoom(row: ResultRow): Room = Room(row[Rooms.id], row[Rooms.name], row[Rooms.leaderboard_id])
+    private fun toRoom(row: ResultRow): Room =
+        Room(
+            row[Rooms.id],
+            row[Rooms.name],
+            row[Rooms.leaderboard_id]
+        )
 }

@@ -1,26 +1,28 @@
-package com.dekaustubh.models
+package com.dekaustubh.models.room
 
+import com.dekaustubh.models.Error
+import com.dekaustubh.models.Success
 import com.fasterxml.jackson.annotation.JsonClassDescription
 import com.fasterxml.jackson.annotation.JsonInclude
 
 /**
- * Result class for fetching or updating single user.
+ * Result class for fetching or updating single [Room].
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonClassDescription("user")
-data class UserResult(
+@JsonClassDescription("room")
+data class RoomResult(
     val error: Error? = null,
     val success: Success? = null,
-    val user: User?
+    val room: Room?
 )
 
 /**
  * Result class for fetching all the users.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonClassDescription("users")
-data class UsersResult(
+@JsonClassDescription("rooms")
+data class RoomsResult(
     val error: Error? = null,
     val success: Success? = null,
-    val user: List<User>
+    val rooms: List<Rooms>
 )

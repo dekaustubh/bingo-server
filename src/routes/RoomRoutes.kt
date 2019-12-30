@@ -1,8 +1,8 @@
 package com.dekaustubh.routes
 
 import com.dekaustubh.models.Error
-import com.dekaustubh.models.Room
-import com.dekaustubh.models.RoomResult
+import com.dekaustubh.models.room.Room
+import com.dekaustubh.models.room.RoomResult
 import com.dekaustubh.models.Success
 import com.dekaustubh.repositories.RoomRepository
 import io.ktor.application.call

@@ -1,10 +1,9 @@
 package com.dekaustubh.repositories
 
 import com.dekaustubh.db.DatabaseFactory.dbQuery
-import com.dekaustubh.models.User
-import com.dekaustubh.models.Users
+import com.dekaustubh.models.User.User
+import com.dekaustubh.models.User.Users
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 /**
@@ -82,5 +81,10 @@ class UserRepositoryImpl() : UserRepository {
         return user != null
     }
 
-    private fun toUser(row: ResultRow): User = User(row[Users.id], row[Users.name], row[Users.email])
+    private fun toUser(row: ResultRow): User =
+        User(
+            row[Users.id],
+            row[Users.name],
+            row[Users.email]
+        )
 }
