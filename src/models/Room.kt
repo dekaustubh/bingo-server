@@ -1,7 +1,5 @@
-package com.dekaustubh.models.room
+package com.dekaustubh.models
 
-import com.dekaustubh.models.Error
-import com.dekaustubh.models.Success
 import com.fasterxml.jackson.annotation.JsonClassDescription
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty

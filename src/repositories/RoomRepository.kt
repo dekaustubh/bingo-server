@@ -1,8 +1,8 @@
 package com.dekaustubh.repositories
 
 import com.dekaustubh.db.DatabaseFactory
-import com.dekaustubh.models.room.Room
-import com.dekaustubh.models.room.Rooms
+import com.dekaustubh.models.Room
+import com.dekaustubh.models.Rooms
 import com.dekaustubh.models.User.Users
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
