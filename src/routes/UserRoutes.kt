@@ -14,6 +14,9 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 
+/**
+ * All users realted routes.
+ */
 fun Routing.userRoutes(userRepository: UserRepository) {
     route("/api/v1") {
         route("/user") {

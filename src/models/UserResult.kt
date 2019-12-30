@@ -1,7 +1,12 @@
 package com.dekaustubh.models
 
 import com.fasterxml.jackson.annotation.JsonClassDescription
+import com.fasterxml.jackson.annotation.JsonInclude
 
+/**
+ * Result class for fetching or updating single user.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonClassDescription("user")
 data class UserResult(
     val error: Error? = null,
@@ -9,6 +14,10 @@ data class UserResult(
     val user: User?
 )
 
+/**
+ * Result class for fetching all the users.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonClassDescription("users")
 data class UsersResult(
     val error: Error? = null,

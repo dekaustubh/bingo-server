@@ -2,6 +2,9 @@ package com.dekaustubh.models
 
 import org.jetbrains.exposed.sql.Table
 
+/**
+ * Data model for User.
+ */
 data class User(
     val id: Long,
     val name: String,

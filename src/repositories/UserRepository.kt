@@ -7,10 +7,33 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
+/**
+ * Interface to interfat with user data.
+ */
 interface UserRepository {
+    /**
+     * Creates a row in Users database table.
+     * @return [User] if successfully created, null otherwise.
+     */
     suspend fun addUser(userName: String, userEmail: String): User?
+
+    /**
+     * Fetches user with specific [id].
+     * @return [User] if found, null otherwise.
+     */
     suspend fun getUserById(id: Long): User?
+
+    /**
+     * Fetches user with specific [email].
+     * @return [User] if found, null otherwise.
+     */
     suspend fun getUserByEmail(email: String): User?
+
+    /**
+     * Deletes user specified by [id].
+     * Note: This is not a hard delete, only [User#deleted_at] field is set, i.e. a soft delete.
+     * @return [true] if user is deleted, false otherwise.
+     */
     suspend fun removeUserById(id: Long): Boolean
 }
 
