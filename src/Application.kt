@@ -1,5 +1,7 @@
 package com.dekaustubh
 
+import com.dekaustubh.db.DatabaseFactory
+import com.dekaustubh.repositories.UserRepositoryImpl
 import com.dekaustubh.routes.userRoutes
 import io.ktor.application.*
 import io.ktor.response.*
@@ -20,6 +22,9 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+    install(DefaultHeaders)
+    install(CallLogging)
+
     install(io.ktor.websocket.WebSockets) {
         pingPeriod = Duration.ofSeconds(15)
         timeout = Duration.ofSeconds(15)
@@ -33,12 +38,10 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
+    DatabaseFactory.init()
     install(Routing) {
-        userRoutes()
+        userRoutes(UserRepositoryImpl())
     }
-
-    install(DefaultHeaders)
-    install(CallLogging)
 
     /*routing {
         get("/") {
