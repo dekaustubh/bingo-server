@@ -1,5 +1,6 @@
 package com.dekaustubh
 
+import com.dekaustubh.routes.userRoutes
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.request.*
@@ -32,14 +33,16 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
-    routing {
+    install(Routing) {
+        userRoutes()
+    }
+
+    install(DefaultHeaders)
+    install(CallLogging)
+
+    /*routing {
         get("/") {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-        }
-
-        // Static feature. Try to access `/static/ktor_logo.svg`
-        static("/static") {
-            resources("static")
         }
 
         install(StatusPages) {
@@ -65,7 +68,7 @@ fun Application.module(testing: Boolean = false) {
         get("/json/jackson") {
             call.respond(mapOf("hello" to "world"))
         }
-    }
+    }*/
 }
 
 class AuthenticationException : RuntimeException()
