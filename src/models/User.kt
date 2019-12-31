@@ -1,6 +1,7 @@
 package com.dekaustubh.models.User
 
 import com.dekaustubh.models.Error
+import com.dekaustubh.models.Room
 import com.dekaustubh.models.Success
 import com.fasterxml.jackson.annotation.JsonClassDescription
 import com.fasterxml.jackson.annotation.JsonInclude
@@ -13,7 +14,14 @@ data class User(
     val id: Long,
     val name: String,
     val email: String,
-    val token: String? = null
+    val token: String? = null,
+    val rooms: List<Room>? = null
+)
+
+data class LoginRequest(
+    val name: String,
+    val email: String,
+    val password: String
 )
 
 /**

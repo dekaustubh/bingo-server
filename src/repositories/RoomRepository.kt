@@ -3,6 +3,7 @@ package com.dekaustubh.repositories
 import com.dekaustubh.constants.Db.LIMIT
 import com.dekaustubh.constants.Db.OFFSET
 import com.dekaustubh.db.DatabaseFactory
+import com.dekaustubh.extensions.toRoom
 import com.dekaustubh.models.Room
 import com.dekaustubh.models.RoomMembers
 import com.dekaustubh.models.Rooms
@@ -79,7 +80,7 @@ class RoomRepositoryImpl() : RoomRepository {
         transaction {
             room = Rooms
                 .select { (Rooms.id eq id) and (Rooms.deleted_at eq 0) }
-                .mapNotNull { toRoom(it, getRoomMembers(id)) }
+                .mapNotNull { it.toRoom(getRoomMembers(id)) }
                 .singleOrNull()
         }
         return room
@@ -91,7 +92,7 @@ class RoomRepositoryImpl() : RoomRepository {
             rooms.addAll(
                 Rooms
                     .select { Rooms.name like name }
-                    .mapNotNull { toRoom(it) }
+                    .mapNotNull { it.toRoom() }
             )
         }
         return rooms
@@ -127,7 +128,7 @@ class RoomRepositoryImpl() : RoomRepository {
                 .select { Rooms.id.eq(RoomMembers.room_id) and (RoomMembers.user_id.eq(userId)) }
                 .limit(limit, offset)
                 .orderBy(Rooms.created_at)
-                .forEach { rooms.add(toRoom(it)) }
+                .forEach { rooms.add(it.toRoom()) }
         }
         return rooms
     }
@@ -152,13 +153,4 @@ class RoomRepositoryImpl() : RoomRepository {
             .forEach { members.add(it[RoomMembers.user_id]) }
         return members
     }
-
-    private fun toRoom(row: ResultRow, members: List<Long> = emptyList()): Room =
-        Room(
-            row[Rooms.id],
-            row[Rooms.name],
-            row[Rooms.leaderboard_id],
-            row[Rooms.created_by],
-            members
-        )
 }

@@ -1,8 +1,14 @@
 package com.dekaustubh.repositories
 
+import com.dekaustubh.constants.Db
+import com.dekaustubh.constants.Db.LIMIT
+import com.dekaustubh.constants.Db.OFFSET
 import com.dekaustubh.db.DatabaseFactory.dbQuery
-import com.dekaustubh.models.Token
-import com.dekaustubh.models.Tokens
+import com.dekaustubh.extensions.toPassword
+import com.dekaustubh.extensions.toRoom
+import com.dekaustubh.extensions.toToken
+import com.dekaustubh.extensions.toUser
+import com.dekaustubh.models.*
 import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.Users
 import com.dekaustubh.utils.TimeUtil
@@ -19,7 +25,7 @@ interface UserRepository {
      * Creates a row in Users database table.
      * @return [User] if successfully created, null otherwise.
      */
-    suspend fun addUser(userName: String, userEmail: String): User?
+    suspend fun register(userName: String, userEmail: String, userPassword: String): User?
 
     /**
      * Fetches user with specific [id].
@@ -45,10 +51,22 @@ interface UserRepository {
      * @return [User] if found, null otherwise.
      */
     suspend fun getUserByToken(userToken: String): User?
+
+    /**
+     * Logs user in.
+     * @return [User] if successfully found, null otherwise.
+     */
+    suspend fun login(userEmail: String, userPassword: String): User?
+
+    /**
+     * Chekcs if user is present with the [userEmail].
+     * @return [true] if user is present, false otherwise.
+     */
+    suspend fun isUserPresentWithEmail(userEmail: String): Boolean
 }
 
 class UserRepositoryImpl() : UserRepository {
-    override suspend fun addUser(userName: String, userEmail: String): User? {
+    override suspend fun register(userName: String, userEmail: String, userPassword: String): User? {
         try {
             var key = 0L
             transaction {
@@ -70,6 +88,13 @@ class UserRepositoryImpl() : UserRepository {
                         it[user_id] = u.id
                         it[created_at] = TimeUtil.getCurrentUtcMillis()
                     }
+
+                    Passwords.insert {
+                        it[user_id] = key
+                        it[password] = userPassword
+                        it[created_at] = TimeUtil.getCurrentUtcMillis()
+                    }
+
                     commit()
                 }
             }
@@ -94,7 +119,7 @@ class UserRepositoryImpl() : UserRepository {
         transaction {
             user = Users
                 .select { (Users.id eq id) and (Users.deleted_at eq 0) }
-                .mapNotNull { toUser(it) }
+                .mapNotNull { it.toUser() }
                 .singleOrNull()
         }
         return user
@@ -102,11 +127,26 @@ class UserRepositoryImpl() : UserRepository {
 
     override suspend fun getUserByEmail(email: String): User? {
         var user: User? = null
+        var token: Token? = null
+        val rooms = mutableListOf<Room>()
         transaction {
+            token = Tokens
+                .select { (Tokens.token eq (user?.token ?: "")) and (Tokens.deleted_at eq 0) }
+                .mapNotNull { it.toToken() }
+                .singleOrNull()
+
             user = Users
                 .select { (Users.email eq email) and (Users.deleted_at eq 0) }
-                .mapNotNull { toUser(it) }
+                .mapNotNull { it.toUser(token?.token) }
                 .singleOrNull()
+
+            val userId = user?.id ?: 0L
+            Rooms.innerJoin(RoomMembers)
+                .slice(Rooms.columns)
+                .select { Rooms.id.eq(RoomMembers.room_id) and (RoomMembers.user_id.eq(userId)) }
+                .limit(LIMIT, OFFSET)
+                .orderBy(Rooms.created_at)
+                .forEach { rooms.add(it.toRoom()) }
         }
         return user
     }
@@ -127,30 +167,35 @@ class UserRepositoryImpl() : UserRepository {
         transaction {
             token = Tokens
                 .select { (Tokens.token eq userToken) and (Tokens.deleted_at eq 0) }
-                .mapNotNull { toToken(it) }
+                .mapNotNull { it.toToken() }
                 .singleOrNull()
 
             user = (Users innerJoin Tokens)
                 .slice(Users.columns)
                 .select { (Users.id.eq(Tokens.user_id) and Tokens.token.eq(token?.token ?: "---")) }
-                .mapNotNull { toUser(it) }
+                .mapNotNull { it.toUser(token?.token) }
                 .singleOrNull()
 
         }
+        return getUserByEmail(user?.email ?: "")
+    }
+
+    override suspend fun login(userEmail: String, userPassword: String): User? {
+        val user: User? = getUserByEmail(email = userEmail) ?: return null
+        var password: Password? = null
+        transaction {
+            password =
+                Passwords
+                    .select { Passwords.user_id eq (user?.id ?: 0L) }
+                    .mapNotNull { it.toPassword() }
+                    .singleOrNull()
+        }
+
+        if (password == null) return null
         return user
     }
 
-    private fun toUser(row: ResultRow): User =
-        User(
-            row[Users.id],
-            row[Users.name],
-            row[Users.email]
-        )
-
-    private fun toToken(row: ResultRow): Token =
-        Token(
-            row[Tokens.id],
-            row[Tokens.token],
-            row[Tokens.user_id]
-        )
+    override suspend fun isUserPresentWithEmail(userEmail: String): Boolean {
+        return getUserByEmail(userEmail) != null
+    }
 }

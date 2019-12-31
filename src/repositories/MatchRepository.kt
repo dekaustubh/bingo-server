@@ -1,5 +1,6 @@
 package com.dekaustubh.repositories
 
+import com.dekaustubh.extensions.toMatch
 import com.dekaustubh.extensions.toPlayers
 import com.dekaustubh.extensions.toStringPlayers
 import com.dekaustubh.models.Match
@@ -57,7 +58,7 @@ class MatchRepositoryImpl() : MatchRepository {
         transaction {
             match = Matches
                 .select { (Matches.id eq matchId) and (Matches.deleted_at eq 0) }
-                .mapNotNull { toMatch(it) }
+                .mapNotNull { it.toMatch() }
                 .singleOrNull()
         }
         return match
@@ -85,13 +86,4 @@ class MatchRepositoryImpl() : MatchRepository {
         }
         return getMatchById(matchId)
     }
-
-    private fun toMatch(row: ResultRow): Match =
-        Match(
-            row[Matches.id],
-            row[Matches.room_id],
-            row[Matches.created_by],
-            row[Matches.players].toPlayers(),
-            row[Matches.winner_id]
-        )
 }

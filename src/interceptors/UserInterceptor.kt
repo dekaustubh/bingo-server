@@ -2,6 +2,7 @@ package com.dekaustubh.interceptors
 
 import com.dekaustubh.constants.Request
 import com.dekaustubh.constants.Response
+import com.dekaustubh.models.Error
 import com.dekaustubh.repositories.UserRepository
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -19,7 +20,10 @@ suspend inline fun PipelineContext<*, ApplicationCall>.userInterceptor(userRepos
     } else {
         val user = userRepository.getUserByToken(token)
         if (user == null) {
-            call.respond(HttpStatusCode.BadRequest)
+            call.respond(
+                HttpStatusCode.Forbidden,
+                Error(error = "Not authorized")
+            )
             return finish()
         } else {
             call.attributes.put(AttributeKey(Response.USER), user)
