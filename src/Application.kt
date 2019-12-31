@@ -53,7 +53,7 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
-    DatabaseFactory.init()
+    DatabaseFactory.init(environment)
     install(Routing) {
         val userRepository = UserRepositoryImpl()
         userRoutes(userRepository)
