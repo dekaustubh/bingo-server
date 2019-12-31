@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.Table
 /**
  * Data model for User.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class User(
     val id: Long,
     val name: String,

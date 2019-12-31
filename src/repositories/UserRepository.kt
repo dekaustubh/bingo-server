@@ -177,7 +177,7 @@ class UserRepositoryImpl() : UserRepository {
                 .singleOrNull()
 
         }
-        return getUserByEmail(user?.email ?: "")
+        return user
     }
 
     override suspend fun login(userEmail: String, userPassword: String): User? {

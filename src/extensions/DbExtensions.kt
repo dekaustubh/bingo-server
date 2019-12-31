@@ -41,6 +41,6 @@ fun ResultRow.toMatch(): Match =
         this[Matches.id],
         this[Matches.room_id],
         this[Matches.created_by],
-        this[Matches.players].toPlayers(),
-        this[Matches.winner_id]
+        this[Matches.players]?.toPlayers() ?: mutableListOf(),
+        this[Matches.winner_id] ?: 0L
     )

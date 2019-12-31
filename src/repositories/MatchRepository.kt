@@ -45,6 +45,7 @@ class MatchRepositoryImpl() : MatchRepository {
             key = (Matches.insert {
                 it[created_by] = createdBy
                 it[room_id] = roomId
+                it[players] = createdBy.toString()
                 it[created_at] = TimeUtil.getCurrentUtcMillis()
             } get Matches.id)
 

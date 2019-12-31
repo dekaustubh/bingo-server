@@ -2,7 +2,10 @@ package com.dekaustubh.interceptors
 
 import com.dekaustubh.constants.Request
 import com.dekaustubh.constants.Response
+import com.dekaustubh.constants.Response.USER
+import com.dekaustubh.constants.Response.USER_ATTR
 import com.dekaustubh.models.Error
+import com.dekaustubh.models.User.User
 import com.dekaustubh.repositories.UserRepository
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -15,7 +18,10 @@ import io.ktor.util.pipeline.PipelineContext
 suspend inline fun PipelineContext<*, ApplicationCall>.userInterceptor(userRepository: UserRepository) {
     val token = call.request.header(Request.TOKEN)
     if (token == null) {
-        call.respond(HttpStatusCode.BadRequest)
+        call.respond(
+            HttpStatusCode.Forbidden,
+            Error(error = "Auth token not present")
+        )
         return finish()
     } else {
         val user = userRepository.getUserByToken(token)
@@ -26,7 +32,7 @@ suspend inline fun PipelineContext<*, ApplicationCall>.userInterceptor(userRepos
             )
             return finish()
         } else {
-            call.attributes.put(AttributeKey(Response.USER), user)
+            call.attributes.put(USER_ATTR, user)
         }
     }
 }

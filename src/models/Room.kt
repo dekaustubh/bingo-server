@@ -19,6 +19,10 @@ data class Room (
     val members: List<Long>
 )
 
+data class CreateRoomRequest(
+    val name: String
+)
+
 /**
  * Room database table.
  */
@@ -31,7 +35,7 @@ object Rooms : Table() {
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)
     init {
-        Users.index(true, Rooms.name)
+        Rooms.index(true, Rooms.name)
     }
 }
 

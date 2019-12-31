@@ -14,8 +14,8 @@ data class Password(
 object Passwords : LongIdTable() {
     val user_id = long("user_id") references Users.id
     val password = varchar("password", 32)
-    val created_at = Rooms.long("created_at")
-    val deleted_at = Rooms.long("deleted_at").default(0)
-    val updated_at = Rooms.long("updated_at").default(0)
+    val created_at = long("created_at")
+    val deleted_at = long("deleted_at").default(0)
+    val updated_at = long("updated_at").default(0)
 }
 

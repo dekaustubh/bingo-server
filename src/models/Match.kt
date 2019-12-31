@@ -19,6 +19,14 @@ data class Match(
     val winnerId: Long
 )
 
+data class TakeTurn(
+    val number: Int,
+    @JsonProperty("current_turn")
+    val currentTaker: Long,
+    @JsonProperty("next_turn")
+    val nextTaker: Long
+)
+
 /**
  * Match database table.
  */
@@ -26,8 +34,8 @@ object Matches : Table() {
     val id = long("id").primaryKey().autoIncrement()
     val created_by = long("created_by")
     val room_id = long("room_id")
-    val players = text("players")
-    val winner_id = long("winner_id")
+    val players = text("players").nullable()
+    val winner_id = long("winner_id").nullable()
     val points = integer("points").default(0)
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)

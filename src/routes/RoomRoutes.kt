@@ -1,25 +1,19 @@
 package com.dekaustubh.routes
 
-import com.dekaustubh.constants.Response
+import com.dekaustubh.constants.Response.USER_ATTR
 import com.dekaustubh.interceptors.userInterceptor
-import com.dekaustubh.models.Error
-import com.dekaustubh.models.Room
-import com.dekaustubh.models.RoomResult
-import com.dekaustubh.models.Success
-import com.dekaustubh.models.User.User
+import com.dekaustubh.models.*
 import com.dekaustubh.repositories.RoomRepository
 import com.dekaustubh.repositories.UserRepository
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.path
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
-import io.ktor.util.AttributeKey
 
 /**
  * All users related routes.
@@ -32,10 +26,10 @@ fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepo
             }
 
             post("/create") {
-                val user = call.attributes[AttributeKey(Response.USER)] as User
-                val room = call.receive<Room>()
+                val user = call.attributes[USER_ATTR]
+                val request = call.receive<CreateRoomRequest>()
 
-                val addedUser = roomRepository.createRoom(room.name, user.id)
+                val addedUser = roomRepository.createRoom(request.name, user.id)
                 addedUser?.let {
                     call.respond(
                         HttpStatusCode.Created,

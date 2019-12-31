@@ -21,6 +21,7 @@ object DatabaseFactory {
             create(Rooms)
             create(Matches)
             create(RoomMembers)
+            create(Passwords)
         }
     }
 
