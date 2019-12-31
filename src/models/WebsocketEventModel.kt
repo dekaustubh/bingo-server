@@ -42,3 +42,11 @@ data class TurnTaken(
     val nextTurn: Long,
     val number: Int
 ) : WebsocketEvent(MessageType.TAKE_TURN)
+
+data class MatchWon(
+    @JsonProperty("user_id")
+    val userId: Long,
+    val points: Int,
+    @JsonProperty("room_id")
+    val roomId: Long
+) : WebsocketEvent(MessageType.WIN)

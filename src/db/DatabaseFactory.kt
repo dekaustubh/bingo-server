@@ -30,6 +30,7 @@ object DatabaseFactory {
             create(Matches)
             create(RoomMembers)
             create(Passwords)
+            create(Leaderboards)
         }
     }
 

@@ -1,13 +1,16 @@
 package com.dekaustubh.repositories
 
 import com.dekaustubh.extensions.toMatch
-import com.dekaustubh.extensions.toPlayers
 import com.dekaustubh.extensions.toStringPlayers
 import com.dekaustubh.models.Match
+import com.dekaustubh.models.MatchStatus
 import com.dekaustubh.models.Matches
 import com.dekaustubh.utils.TimeUtil
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 /**
  * Interface to interact with [Match] data.
@@ -33,9 +36,26 @@ interface MatchRepository {
 
     /**
      * Update a match specified with [matchId].
-     * @return Updated [Match] if successfully joined, null otherwise.
+     * @return Updated [Match] if successfully updated, null otherwise.
      */
-    fun updateMatch(matchId: Long, winnerId: Long, userIds: List<Long> = emptyList(), winnerPoints: Int = 0): Match?
+    fun updateMatch(
+        matchId: Long,
+        winnerId: Long,
+        matchStatus: MatchStatus,
+        userIds: List<Long> = emptyList(),
+        winnerPoints: Int = 0
+    ): Match?
+
+    /**
+     * Update a match's status.
+     * @return Updated [Match] if successfully updated, null otherwise.
+     */
+    fun updateMatchStatus(matchId: Long, matchStatus: MatchStatus): Match?
+
+    /**
+     * Update match with win status.
+     */
+    fun winMatch(matchId: Long, winnerId: Long, points: Int): Match?
 }
 
 class MatchRepositoryImpl() : MatchRepository {
@@ -70,18 +90,51 @@ class MatchRepositoryImpl() : MatchRepository {
         match?.let {
             val players = match.players
             players.add(userId)
-            return updateMatch(matchId, 0, players)
+            return updateMatch(matchId, 0, MatchStatus.valueOf(match.status), players)
         } ?: return null
     }
 
-    override fun updateMatch(matchId: Long, winnerId: Long, userIds: List<Long>, winnerPoints: Int): Match? {
+    override fun updateMatch(
+        matchId: Long,
+        winnerId: Long,
+        matchStatus: MatchStatus,
+        userIds: List<Long>,
+        winnerPoints: Int
+    ): Match? {
         transaction {
             Matches.update({ (Matches.id eq matchId) and (Matches.deleted_at eq 0) }) {
                 if (winnerId != 0L) it[winner_id] = winnerId
                 it[points] = winnerPoints
+                it[status] = matchStatus.toString()
                 it[players] = userIds.toStringPlayers()
                 it[created_at] = TimeUtil.getCurrentUtcMillis()
                 it[updated_at] = TimeUtil.getCurrentUtcMillis()
+            }
+            commit()
+        }
+        return getMatchById(matchId)
+    }
+
+    override fun updateMatchStatus(matchId: Long, matchStatus: MatchStatus): Match? {
+        transaction {
+            Matches.update({ (Matches.id eq matchId) and (Matches.deleted_at eq 0) }) {
+                it[status] = matchStatus.toString()
+                it[created_at] = TimeUtil.getCurrentUtcMillis()
+                it[updated_at] = TimeUtil.getCurrentUtcMillis()
+            }
+            commit()
+        }
+        return getMatchById(matchId)
+    }
+
+    override fun winMatch(matchId: Long, winnerId: Long, points: Int): Match? {
+        transaction {
+            Matches.update({ (Matches.id eq matchId) and (Matches.deleted_at eq 0) }) {
+                it[status] = MatchStatus.ENDED.toString()
+                it[created_at] = TimeUtil.getCurrentUtcMillis()
+                it[updated_at] = TimeUtil.getCurrentUtcMillis()
+                it[winner_id] = winnerId
+                it[Matches.points] = points
             }
             commit()
         }

@@ -10,10 +10,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.routing.Routing
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.route
+import io.ktor.routing.*
 
 /**
  * All users related routes.
@@ -69,6 +66,49 @@ fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepo
                         )
                     )
                 }
+            }
+
+            put("/{id}/join") {
+                val id = call.parameters["id"]?.toLong() ?: 0L
+                val user = call.attributes[USER_ATTR]
+
+                val room = roomRepository.joinRoom(id, user.id)
+                room?.let {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        RoomResult(
+                            success = Success(success = "Room joined successfully"),
+                            room = it
+                        )
+                    )
+                } ?: run {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        RoomResult(
+                            error = Error(error = "Room not present"),
+                            room = null
+                        )
+                    )
+                }
+            }
+        }
+
+        route("/rooms") {
+            intercept(ApplicationCallPipeline.Call) {
+                userInterceptor(userRepository)
+            }
+
+            get("/") {
+                val user = call.attributes[USER_ATTR]
+                val rooms = roomRepository.getAllRoomsForUser(user.id)
+
+                call.respond(
+                    HttpStatusCode.OK,
+                    RoomsResult(
+                        success = Success(success = "Rooms fetched"),
+                        rooms = rooms
+                    )
+                )
             }
         }
     }

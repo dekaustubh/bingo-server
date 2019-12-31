@@ -3,10 +3,9 @@ package com.dekaustubh.repositories
 import com.dekaustubh.constants.Db.LIMIT
 import com.dekaustubh.constants.Db.OFFSET
 import com.dekaustubh.db.DatabaseFactory
+import com.dekaustubh.extensions.toLeaderboard
 import com.dekaustubh.extensions.toRoom
-import com.dekaustubh.models.Room
-import com.dekaustubh.models.RoomMembers
-import com.dekaustubh.models.Rooms
+import com.dekaustubh.models.*
 import com.dekaustubh.utils.TimeUtil
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -70,6 +69,19 @@ class RoomRepositoryImpl() : RoomRepository {
                 it[leaderboard_id] = 0
             } get Rooms.id)
 
+            // Make an entry to the leaderboards...
+            Leaderboards.insert {
+                it[room_id] = key
+                it[user_id] = createdBy
+                it[created_at] = TimeUtil.getCurrentUtcMillis()
+            }
+
+            RoomMembers.insert {
+                it[room_id] = key
+                it[user_id] = createdBy
+                it[created_at] = TimeUtil.getCurrentUtcMillis()
+            }
+
             commit()
         }
         return getRoomById(key)
@@ -77,10 +89,15 @@ class RoomRepositoryImpl() : RoomRepository {
 
     override suspend fun getRoomById(id: Long): Room? {
         var room: Room? = null
+        val leaderboars = mutableListOf<Leaderboard>()
         transaction {
+            Leaderboards.select { Leaderboards.room_id eq id }
+                .orderBy(Leaderboards.points)
+                .forEach { leaderboars.add(it.toLeaderboard()) }
+
             room = Rooms
                 .select { (Rooms.id eq id) and (Rooms.deleted_at eq 0) }
-                .mapNotNull { it.toRoom(getRoomMembers(id)) }
+                .mapNotNull { it.toRoom(getRoomMembers(id), leaderboars) }
                 .singleOrNull()
         }
         return room
@@ -141,6 +158,12 @@ class RoomRepositoryImpl() : RoomRepository {
                 it[created_at] = TimeUtil.getCurrentUtcMillis()
             }
 
+            // Make an entry to the leaderboards...
+            Leaderboards.insert {
+                it[room_id] = roomId
+                it[user_id] = userId
+                it[created_at] = TimeUtil.getCurrentUtcMillis()
+            }
             commit()
         }
         return getRoomById(roomId)

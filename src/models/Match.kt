@@ -16,7 +16,8 @@ data class Match(
     val createdBy: Long,
     val players: MutableList<Long>,
     @JsonProperty("winner_id")
-    val winnerId: Long
+    val winnerId: Long,
+    val status: String
 )
 
 data class TakeTurn(
@@ -37,9 +38,16 @@ object Matches : Table() {
     val players = text("players").nullable()
     val winner_id = long("winner_id").nullable()
     val points = integer("points").default(0)
+    val status = varchar("status", 20).default(MatchStatus.WAITING.toString())
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)
+}
+
+enum class MatchStatus {
+    WAITING,
+    STARTED,
+    ENDED
 }
 
 /**

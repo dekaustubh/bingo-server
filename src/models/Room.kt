@@ -1,6 +1,5 @@
 package com.dekaustubh.models
 
-import com.dekaustubh.models.User.Users
 import com.fasterxml.jackson.annotation.JsonClassDescription
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -9,14 +8,16 @@ import org.jetbrains.exposed.sql.Table
 /**
  * Data model for Room object.
  */
-data class Room (
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Room(
     val id: Long,
     val name: String,
     @JsonProperty("leaderboard_id")
     val leaderboardId: Long,
     @JsonProperty("created_by")
     val createdBy: Long,
-    val members: List<Long>
+    val members: List<Long>,
+    val leaderboards: List<Leaderboard>
 )
 
 data class CreateRoomRequest(
@@ -34,6 +35,7 @@ object Rooms : Table() {
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)
+
     init {
         Rooms.index(true, Rooms.name)
     }
@@ -58,5 +60,5 @@ data class RoomResult(
 data class RoomsResult(
     val error: Error? = null,
     val success: Success? = null,
-    val rooms: List<Rooms>
+    val rooms: List<Room>
 )

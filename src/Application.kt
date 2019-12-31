@@ -3,10 +3,7 @@ package com.dekaustubh
 import com.dekaustubh.db.DatabaseFactory
 import com.dekaustubh.models.UserConnected
 import com.dekaustubh.models.UserJoined
-import com.dekaustubh.repositories.MatchRepositoryImpl
-import com.dekaustubh.repositories.RoomRepository
-import com.dekaustubh.repositories.RoomRepositoryImpl
-import com.dekaustubh.repositories.UserRepositoryImpl
+import com.dekaustubh.repositories.*
 import com.dekaustubh.routes.matchRoutes
 import com.dekaustubh.routes.roomsRoutes
 import com.dekaustubh.routes.userRoutes
@@ -56,9 +53,10 @@ fun Application.module(testing: Boolean = false) {
     DatabaseFactory.init(environment)
     install(Routing) {
         val userRepository = UserRepositoryImpl()
+        val leaderboardRepository = LeaderboardRepositoryImpl()
         userRoutes(userRepository)
         roomsRoutes(RoomRepositoryImpl(), userRepository)
-        matchRoutes(MatchRepositoryImpl(), userRepository, webSocket, mapper)
+        matchRoutes(MatchRepositoryImpl(), userRepository, leaderboardRepository, webSocket, mapper)
     }
 
     routing {

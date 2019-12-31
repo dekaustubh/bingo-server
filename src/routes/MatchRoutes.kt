@@ -1,29 +1,30 @@
 package com.dekaustubh.routes
 
-import com.dekaustubh.constants.Response
 import com.dekaustubh.constants.Response.USER_ATTR
 import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.*
-import com.dekaustubh.models.User.User
-import com.dekaustubh.models.User.UserResult
+import com.dekaustubh.repositories.LeaderboardRepository
 import com.dekaustubh.repositories.MatchRepository
 import com.dekaustubh.repositories.UserRepository
 import com.dekaustubh.socket.WebSocket
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.*
-import io.ktor.util.AttributeKey
-import kotlin.math.sign
 
 /**
  * All match related routes.
  */
-fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRepository, webSocket: WebSocket, mapper: ObjectMapper) {
+fun Routing.matchRoutes(
+    matchRepository: MatchRepository,
+    userRepository: UserRepository,
+    leaderboardRepository: LeaderboardRepository,
+    webSocket: WebSocket,
+    mapper: ObjectMapper
+) {
     route("/api/v1/room/{roomId}") {
         route("/match") {
             intercept(ApplicationCallPipeline.Call) {
@@ -41,7 +42,7 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
                 userInterceptor(userRepository)
             }
 
-            post("/start") {
+            post("/create") {
                 val user = call.attributes[USER_ATTR]
                 val roomId = call.parameters["roomId"]!!.toLong()
 
@@ -93,11 +94,35 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
                 val user = call.attributes[USER_ATTR]
                 val oldMatch = matchRepository.getMatchById(matchId)
 
-                val userIds = oldMatch?.players ?: mutableListOf()
+                if (oldMatch?.status != MatchStatus.WAITING.toString()) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        MatchResult(
+                            error = Error(error = "Match over already!"),
+                            match = null
+                        )
+                    )
+                    return@put
+                }
+
+                val userIds = oldMatch.players
+
+                if (oldMatch.players.contains(user.id)) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        MatchResult(
+                            error = Error(error = "Match joined already"),
+                            match = null
+                        )
+                    )
+                    return@put
+                }
+
                 userIds.add(user.id)
                 val newMatch = matchRepository.updateMatch(
                     matchId,
                     0L,
+                    MatchStatus.valueOf(oldMatch.status),
                     userIds
                 )
 
@@ -134,7 +159,8 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
             post("/{matchId}/start") {
                 val matchId = call.parameters["matchId"]?.toLong() ?: 0L
                 val user = call.attributes[USER_ATTR]
-                val match = matchRepository.getMatchById(matchId)
+
+                val match = matchRepository.updateMatchStatus(matchId, MatchStatus.STARTED)
 
                 match?.let { m ->
                     m.players
@@ -193,7 +219,13 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
                         webSocket.sendTo(
                             id,
                             mapper.writeValueAsString(
-                                TurnTaken(userId = user.id, userName = user.name, matchId = matchId, nextTurn = next, number = turn.number)
+                                TurnTaken(
+                                    userId = user.id,
+                                    userName = user.name,
+                                    matchId = matchId,
+                                    nextTurn = next,
+                                    number = turn.number
+                                )
                             )
                         )
                     }
@@ -211,14 +243,72 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
                 val matchId = call.parameters["matchId"]?.toLong() ?: 0L
                 val oldMatch = call.receive<Match>()
 
-                // TODO.. change points here.
-                val match = matchRepository.updateMatch(matchId, oldMatch.winnerId, oldMatch.players, 100)
+                val match = matchRepository.updateMatch(
+                    matchId,
+                    oldMatch.winnerId,
+                    MatchStatus.valueOf(oldMatch.status),
+                    oldMatch.players,
+                    0
+                )
                 match?.let {
                     call.respond(
                         HttpStatusCode.OK,
                         MatchResult(
                             success = Success(success = "Match updated successfully"),
                             match = it
+                        )
+                    )
+                } ?: run {
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        MatchResult(
+                            error = Error(error = "Error updating match"),
+                            match = null
+                        )
+                    )
+                }
+            }
+
+            put("/{matchId}/win") {
+                val matchId = call.parameters["matchId"]?.toLong() ?: 0L
+                val roomId = call.parameters["roomId"]?.toLong() ?: 0L
+                val user = call.attributes[USER_ATTR]
+
+                val oldMatch = matchRepository.getMatchById(matchId)
+                val points = (oldMatch?.players?.size ?: 0) * 5
+                val match = matchRepository.winMatch(
+                    matchId,
+                    user.id,
+                    points
+                )
+
+                leaderboardRepository.updateLeaderboardForRoom(
+                    roomId,
+                    user.id,
+                    points
+                )
+
+                match?.let { m ->
+                    m.players
+                        .filter { it != user.id }
+                        .forEach { id ->
+                            webSocket.sendTo(
+                                id,
+                                mapper.writeValueAsString(
+                                    MatchWon(
+                                        userId = user.id,
+                                        roomId = roomId,
+                                        points = points
+                                    )
+                                )
+                            )
+                        }
+
+                    call.respond(
+                        HttpStatusCode.OK,
+                        MatchResult(
+                            success = Success(success = "Match over!"),
+                            match = m
                         )
                     )
                 } ?: run {
