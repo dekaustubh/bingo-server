@@ -51,8 +51,8 @@ fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepo
             }
 
             get("/{id}") {
-                val id = call.parameters["id"]
-                val room = roomRepository.getRoomById(id?.toLong() ?: 0L)
+                val id = call.parameters["id"]?.toLong() ?: 0L
+                val room = roomRepository.getRoomById(id)
                 room?.let {
                     call.respond(
                         HttpStatusCode.OK,

@@ -1,5 +1,6 @@
 package com.dekaustubh.routes
 
+import com.dekaustubh.constants.Response
 import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.Error
 import com.dekaustubh.models.Match
@@ -15,21 +16,34 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.*
+import io.ktor.util.AttributeKey
 
 /**
  * All match related routes.
  */
 fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRepository) {
-    route("/api/v1") {
+    route("/api/v1/room/{roomId}") {
         route("/match") {
             intercept(ApplicationCallPipeline.Call) {
+                val roomId = call.parameters["roomId"]?.toLong() ?: 0L
+                if (roomId == 0L) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        MatchResult(
+                            error = Error(error = "Invalid room id"),
+                            match = null
+                        )
+                    )
+                    return@intercept finish()
+                }
                 userInterceptor(userRepository)
             }
 
             post("/create") {
-                val match = call.receive<Match>()
-                // TODO.. change match.createdBy to basic auth.
-                val addedMatch = matchRepository.createMatch(match.createdBy, match.roomId)
+                val user = call.attributes[AttributeKey(Response.USER)] as User
+                val roomId = call.parameters["roomId"]!!.toLong()
+
+                val addedMatch = matchRepository.createMatch(user.id, roomId)
                 addedMatch?.let {
                     call.respond(
                         HttpStatusCode.Created,
@@ -49,9 +63,10 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
                 }
             }
 
-            get("/{id}") {
-                val id = call.parameters["id"]
+            get("/{matchId}") {
+                val id = call.parameters["matchId"]
                 val match = matchRepository.getMatchById(id?.toLong() ?: 0L)
+
                 match?.let {
                     call.respond(
                         HttpStatusCode.OK,
@@ -73,8 +88,9 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
 
             put("/{id}/join") {
                 val matchId = call.parameters["id"]
-                // TODO.. change match.createdBy to basic auth.
-                val match = matchRepository.joinMatch(matchId?.toLong() ?: 0L, 1L)
+                val user = call.attributes[AttributeKey(Response.USER)] as User
+
+                val match = matchRepository.joinMatch(matchId?.toLong() ?: 0L, user.id)
                 match?.let {
                     call.respond(
                         HttpStatusCode.OK,
@@ -94,11 +110,13 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
                 }
             }
 
-            put("/{id}/update") {
-                val matchId = call.parameters["id"]
+            put("/{matchId}/update") {
+                val matchId = call.parameters["matchId"]?.toLong() ?: 0L
                 val oldMatch = call.receive<Match>()
-                // TODO.. change match.createdBy to basic auth.
-                val match = matchRepository.updateMatch(matchId?.toLong() ?: 0L, 1L, oldMatch.players, 100)
+                val user = call.attributes[AttributeKey(Response.USER)] as User
+
+                // TODO.. change points here.
+                val match = matchRepository.updateMatch(matchId, oldMatch.winnerId, oldMatch.players, 100)
                 match?.let {
                     call.respond(
                         HttpStatusCode.OK,
