@@ -6,6 +6,7 @@ import com.dekaustubh.models.Tokens
 import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.Users
 import com.dekaustubh.utils.TimeUtil
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -48,38 +49,43 @@ interface UserRepository {
 
 class UserRepositoryImpl() : UserRepository {
     override suspend fun addUser(userName: String, userEmail: String): User? {
-        var key = 0L
-        transaction {
-            key = Users.insert {
-                it[name] = userName
-                it[email] = userEmail
-                it[created_at] = TimeUtil.getCurrentUtcMillis()
-            } get Users.id
-            commit()
-        }
-
-        val user = getUserById(key)
-        var uuid = ""
-        user?.let { u ->
+        try {
+            var key = 0L
             transaction {
-                Tokens.insert {
-                    uuid = UUID.randomUUID().toString()
-                    it[token] = uuid
-                    it[user_id] = u.id
+                key = Users.insert {
+                    it[name] = userName
+                    it[email] = userEmail
                     it[created_at] = TimeUtil.getCurrentUtcMillis()
-                }
+                } get Users.id
                 commit()
             }
-        }
-        return if (user != null) {
-            User(
-                user.id,
-                user.name,
-                user.email,
-                uuid
-            )
-        } else {
-            null
+
+            val user = getUserById(key)
+            var uuid = ""
+            user?.let { u ->
+                transaction {
+                    Tokens.insert {
+                        uuid = UUID.randomUUID().toString()
+                        it[token] = uuid
+                        it[user_id] = u.id
+                        it[created_at] = TimeUtil.getCurrentUtcMillis()
+                    }
+                    commit()
+                }
+            }
+            return if (user != null) {
+                User(
+                    user.id,
+                    user.name,
+                    user.email,
+                    uuid
+                )
+            } else {
+                null
+            }
+        } catch (e: ExposedSQLException) {
+            println("Error while adding user $e")
+            return null
         }
     }
 

@@ -1,5 +1,6 @@
 package com.dekaustubh.models
 
+import com.dekaustubh.models.User.Users
 import com.fasterxml.jackson.annotation.JsonClassDescription
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -25,6 +26,9 @@ object Rooms : Table() {
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)
+    init {
+        Users.index(true, Rooms.name)
+    }
 }
 
 /**
