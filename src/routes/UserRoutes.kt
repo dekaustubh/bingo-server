@@ -7,6 +7,7 @@ import com.dekaustubh.models.User.LoginRequest
 import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.UserResult
 import com.dekaustubh.repositories.UserRepository
+import com.dekaustubh.utils.md5
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
@@ -45,7 +46,7 @@ fun Routing.userRoutes(userRepository: UserRepository) {
                     return@post
                 }
 
-                val addedUser = userRepository.register(loginRequest.name, loginRequest.email, loginRequest.password)
+                val addedUser = userRepository.register(loginRequest.name, loginRequest.email, loginRequest.password.md5())
                 addedUser?.let {
                     call.respond(
                         HttpStatusCode.Created,
@@ -79,7 +80,7 @@ fun Routing.userRoutes(userRepository: UserRepository) {
                     return@post
                 }
 
-                val user = userRepository.login(loginRequest.email, loginRequest.password)
+                val user = userRepository.login(loginRequest.email, loginRequest.password.md5())
                 user?.let {
                     call.respond(
                         HttpStatusCode.Created,
