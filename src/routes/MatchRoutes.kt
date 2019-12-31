@@ -113,7 +113,6 @@ fun Routing.matchRoutes(matchRepository: MatchRepository, userRepository: UserRe
             put("/{matchId}/update") {
                 val matchId = call.parameters["matchId"]?.toLong() ?: 0L
                 val oldMatch = call.receive<Match>()
-                val user = call.attributes[AttributeKey(Response.USER)] as User
 
                 // TODO.. change points here.
                 val match = matchRepository.updateMatch(matchId, oldMatch.winnerId, oldMatch.players, 100)

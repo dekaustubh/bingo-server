@@ -17,9 +17,7 @@ class TimeUtil {
          * Helper function to return current millis in [timeZone].
          */
         fun getCurrentUtcMillis(): Long {
-            val c = Calendar.getInstance()
-            c.timeZone = TimeZone.getTimeZone("UTC")
-            return c.timeInMillis
+            return getCurrentMillis(TimeZone.getTimeZone("UTC"))
         }
     }
 }

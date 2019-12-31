@@ -1,10 +1,12 @@
 package com.dekaustubh.routes
 
+import com.dekaustubh.constants.Response
 import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.Error
 import com.dekaustubh.models.Room
 import com.dekaustubh.models.RoomResult
 import com.dekaustubh.models.Success
+import com.dekaustubh.models.User.User
 import com.dekaustubh.repositories.RoomRepository
 import com.dekaustubh.repositories.UserRepository
 import io.ktor.application.ApplicationCallPipeline
@@ -17,6 +19,7 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
+import io.ktor.util.AttributeKey
 
 /**
  * All users related routes.
@@ -29,8 +32,10 @@ fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepo
             }
 
             post("/create") {
+                val user = call.attributes[AttributeKey(Response.USER)] as User
                 val room = call.receive<Room>()
-                val addedUser = roomRepository.createRoom(room.name)
+
+                val addedUser = roomRepository.createRoom(room.name, user.id)
                 addedUser?.let {
                     call.respond(
                         HttpStatusCode.Created,

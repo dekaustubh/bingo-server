@@ -1,6 +1,7 @@
 package com.dekaustubh.repositories
 
-import com.dekaustubh.constants.Separator
+import com.dekaustubh.extensions.toPlayers
+import com.dekaustubh.extensions.toStringPlayers
 import com.dekaustubh.models.Match
 import com.dekaustubh.models.Matches
 import com.dekaustubh.utils.TimeUtil
@@ -76,7 +77,7 @@ class MatchRepositoryImpl() : MatchRepository {
             Matches.update({ (Matches.id eq matchId) and (Matches.deleted_at eq 0) }) {
                 if (winnerId != 0L) it[winner_id] = winnerId
                 it[points] = winnerPoints
-                it[players] = toStringPlayers(userIds)
+                it[players] = userIds.toStringPlayers()
                 it[created_at] = TimeUtil.getCurrentUtcMillis()
                 it[updated_at] = TimeUtil.getCurrentUtcMillis()
             }
@@ -90,23 +91,7 @@ class MatchRepositoryImpl() : MatchRepository {
             row[Matches.id],
             row[Matches.room_id],
             row[Matches.created_by],
-            toPlayers(row[Matches.players]),
+            row[Matches.players].toPlayers(),
             row[Matches.winner_id]
         )
-
-    private fun toStringPlayers(players: List<Long>): String {
-        val builder = StringBuilder()
-        players.forEachIndexed { index, id ->
-            builder.append(id)
-            if (index < players.size - 1) builder.append(Separator.COMMA)
-        }
-        return builder.toString()
-    }
-
-    private fun toPlayers(players: String): MutableList<Long> {
-        val list = players.split(Separator.COMMA)
-        val userIds = mutableListOf<Long>()
-        list.forEach { userIds.add(it.toLong()) }
-        return userIds
-    }
 }

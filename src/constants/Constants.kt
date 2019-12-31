@@ -11,3 +11,8 @@ object Response {
 object Separator {
     const val COMMA = ","
 }
+
+object Db {
+    const val LIMIT = 20
+    const val OFFSET = 0
+}

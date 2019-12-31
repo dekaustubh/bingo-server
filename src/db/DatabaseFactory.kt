@@ -1,8 +1,6 @@
 package com.dekaustubh.db
 
-import com.dekaustubh.models.Matches
-import com.dekaustubh.models.Rooms
-import com.dekaustubh.models.Tokens
+import com.dekaustubh.models.*
 import com.dekaustubh.models.User.Users
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
@@ -22,6 +20,7 @@ object DatabaseFactory {
             create(Tokens)
             create(Rooms)
             create(Matches)
+            create(RoomMembers)
         }
     }
 
