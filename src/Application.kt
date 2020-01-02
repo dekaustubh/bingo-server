@@ -60,7 +60,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        // This defines a websocket `/ws` route that allows a protocol upgrade to convert a HTTP request/response request
+        // This defines a websocket `/connect` route that allows a protocol upgrade to convert a HTTP request/response request
         // into a bidirectional packetized connection.
         webSocket("/connect") {
             try {

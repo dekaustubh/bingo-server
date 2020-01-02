@@ -46,7 +46,7 @@ fun Routing.userRoutes(userRepository: UserRepository) {
                     return@post
                 }
 
-                val addedUser = userRepository.register(loginRequest.name, loginRequest.email, loginRequest.password.md5())
+                val addedUser = userRepository.register(loginRequest.name ?: "UNNAMED", loginRequest.email, loginRequest.password.md5())
                 addedUser?.let {
                     call.respond(
                         HttpStatusCode.Created,
