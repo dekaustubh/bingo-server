@@ -130,14 +130,14 @@ class UserRepositoryImpl() : UserRepository {
         var token: Token? = null
         val rooms = mutableListOf<Room>()
         transaction {
-            token = Tokens
-                .select { (Tokens.token eq (user?.token ?: "")) and (Tokens.deleted_at eq 0) }
-                .mapNotNull { it.toToken() }
-                .singleOrNull()
-
             user = Users
                 .select { (Users.email eq email) and (Users.deleted_at eq 0) }
-                .mapNotNull { it.toUser(token?.token) }
+                .mapNotNull { it.toUser() }
+                .singleOrNull()
+
+            token = Tokens
+                .select { (Tokens.user_id eq (user?.id ?: 0L)) and (Tokens.deleted_at eq 0) }
+                .mapNotNull { it.toToken() }
                 .singleOrNull()
 
             val userId = user?.id ?: 0L
@@ -148,7 +148,7 @@ class UserRepositoryImpl() : UserRepository {
                 .orderBy(Rooms.created_at)
                 .forEach { rooms.add(it.toRoom()) }
         }
-        return user
+        return user?.let { User(it.id, it.name, it.email, token?.token, it.rooms) }
     }
 
     override suspend fun removeUserById(id: Long): Boolean {
