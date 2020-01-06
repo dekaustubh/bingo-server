@@ -68,6 +68,18 @@ fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepo
                 }
             }
 
+            get("/{id}/matches") {
+                val id = call.parameters["id"]?.toLong() ?: 0L
+                val matches = roomRepository.getRoomMatches(id)
+                call.respond(
+                    HttpStatusCode.OK,
+                    MatchesResult(
+                        success = Success(success = "Matches fetched"),
+                        matches = matches
+                    )
+                )
+            }
+
             put("/{id}/join") {
                 val id = call.parameters["id"]?.toLong() ?: 0L
                 val user = call.attributes[USER_ATTR]

@@ -4,6 +4,7 @@ import com.dekaustubh.constants.Db.LIMIT
 import com.dekaustubh.constants.Db.OFFSET
 import com.dekaustubh.db.DatabaseFactory
 import com.dekaustubh.extensions.toLeaderboard
+import com.dekaustubh.extensions.toMatch
 import com.dekaustubh.extensions.toRoom
 import com.dekaustubh.models.*
 import com.dekaustubh.utils.TimeUtil
@@ -25,6 +26,12 @@ interface RoomRepository {
      * @return [Room] if found, null otherwise.
      */
     suspend fun getRoomById(id: Long): Room?
+
+    /**
+     * Fetches matches of with specific [id].
+     * @return [List<Match>] if found, empty otherwise.
+     */
+    suspend fun getRoomMatches(id: Long): List<Match>
 
     /**
      * Fetches user with specific [name].
@@ -101,6 +108,16 @@ class RoomRepositoryImpl() : RoomRepository {
                 .singleOrNull()
         }
         return room
+    }
+
+    override suspend fun getRoomMatches(id: Long): List<Match> {
+        val matches = mutableListOf<Match>()
+        transaction {
+            Matches.select { Matches.room_id eq id }
+                .orderBy(Matches.points)
+                .forEach { matches.add(it.toMatch()) }
+        }
+        return matches
     }
 
     override suspend fun searchRoomByName(name: String): List<Room> {
