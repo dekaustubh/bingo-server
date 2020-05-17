@@ -8,12 +8,12 @@ data class RoomMember(
     @JsonProperty("room_id")
     val roomId: Long,
     @JsonProperty("user_id")
-    val userId: Long
+    val userId: String
 )
 
 object RoomMembers: LongIdTable() {
     val room_id = long("room_id") references (Rooms.id)
-    val user_id = long("user_id") references (Users.id)
+    val user_id = text("user_id") references (Users.id)
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)

@@ -10,12 +10,12 @@ sealed class WebsocketEvent(
 
 data class UserConnected(
     @JsonProperty("user_id")
-    val userId: Long
+    val userId: String
 ): WebsocketEvent(MessageType.CONNECT)
 
 data class UserJoined(
     @JsonProperty("user_id")
-    val userId: Long,
+    val userId: String,
     @JsonProperty("user_name")
     val userName: String,
     @JsonProperty("match_id")
@@ -24,7 +24,7 @@ data class UserJoined(
 
 data class MatchStarted(
     @JsonProperty("user_id")
-    val userId: Long,
+    val userId: String,
     @JsonProperty("user_name")
     val userName: String,
     @JsonProperty("match_id")
@@ -33,19 +33,19 @@ data class MatchStarted(
 
 data class TurnTaken(
     @JsonProperty("user_id")
-    val userId: Long,
+    val userId: String,
     @JsonProperty("user_name")
     val userName: String,
     @JsonProperty("match_id")
     val matchId: Long,
     @JsonProperty("next_turn")
-    val nextTurn: Long,
+    val nextTurn: String,
     val number: Int
 ) : WebsocketEvent(MessageType.TAKE_TURN)
 
 data class MatchWon(
     @JsonProperty("user_id")
-    val userId: Long,
+    val userId: String,
     val points: Int,
     @JsonProperty("room_id")
     val roomId: Long

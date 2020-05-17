@@ -22,11 +22,13 @@ import java.time.*
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.jackson.*
+import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@KtorExperimentalAPI
 @ExperimentalCoroutinesApi
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
@@ -62,7 +64,7 @@ fun Application.module(testing: Boolean = false) {
     routing {
         // This defines a websocket `/connect` route that allows a protocol upgrade to convert a HTTP request/response request
         // into a bidirectional packetized connection.
-        webSocket("/connect") {
+        webSocket("/ws") {
             try {
                 // We starts receiving messages (frames).
                 // Since this is a coroutine. This coroutine is suspended until receiving frames.
@@ -71,10 +73,13 @@ fun Application.module(testing: Boolean = false) {
                     // Frames can be [Text], [Binary], [Ping], [Pong], [Close].
                     // We are only interested in textual messages, so we filter it.
                     if (frame is Frame.Text) {
+                        println("Received in connect ${frame.readText()}")
                         val connectedUser = mapper.readValue(frame.readText(), UserConnected::class.java)
                         webSocket.join(connectedUser.userId, this)
                     }
                 }
+            } catch (e: Exception) {
+                println("Got error $e")
             } finally {
                 // TODO...
             }

@@ -15,16 +15,16 @@ class WebSocket {
     /**
      * A concurrent map associating session IDs to user names.
      */
-    private val memberNames = ConcurrentHashMap<Long, String>()
+    private val memberNames = ConcurrentHashMap<String, String>()
 
     /**
      * Associates a session-id to a set of websockets.
      * Since a browser is able to open several tabs and windows with the same cookies and thus the same session.
      * There might be several opened sockets for the same client.
      */
-    private val members = ConcurrentHashMap<Long, MutableList<WebSocketSession>>()
+    private val members = ConcurrentHashMap<String, MutableList<WebSocketSession>>()
 
-    suspend fun join(userId: Long, socket: WebSocketSession) {
+    suspend fun join(userId: String, socket: WebSocketSession) {
         // Checks if this user is already registered in the server and gives him/her a temporal name if required.
         val name = memberNames.computeIfAbsent(userId) { "user${usersCounter.incrementAndGet()}" }
 
@@ -40,7 +40,7 @@ class WebSocket {
     /**
      * Handles that a [member] with a specific [socket] left the server.
      */
-    suspend fun leave(member: Long, socket: WebSocketSession) {
+    suspend fun leave(member: String, socket: WebSocketSession) {
         // Removes the socket connection for this member
         val connections = members[member]
         connections?.remove(socket)
@@ -55,7 +55,7 @@ class WebSocket {
     /**
      * Sends [message] to [recipient].
      */
-    suspend fun sendTo(recipient: Long, message: String) {
+    suspend fun sendTo(recipient: String, message: String) {
         members[recipient]?.forEach { socket ->
             socket.send(Frame.Text(message))
         }
@@ -75,7 +75,7 @@ class WebSocket {
     /**
      * Sends a [message] coming from a [sender] to all the members in the server, including all the connections per member.
      */
-    private suspend fun broadcast(sender: Long, message: String) {
+    private suspend fun broadcast(sender: String, message: String) {
         val name = memberNames[sender] ?: sender
         broadcast("[$name] $message")
     }

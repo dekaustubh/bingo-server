@@ -13,19 +13,19 @@ data class Match(
     @JsonProperty("room_id")
     val roomId: Long,
     @JsonProperty("created_by")
-    val createdBy: Long,
-    val players: MutableList<Long>,
+    val createdBy: String,
+    val players: MutableList<String>,
     @JsonProperty("winner_id")
-    val winnerId: Long,
+    val winnerId: String,
     val status: String
 )
 
 data class TakeTurn(
     val number: Int,
     @JsonProperty("current_turn")
-    val currentTaker: Long,
+    val currentTaker: String,
     @JsonProperty("next_turn")
-    val nextTaker: Long
+    val nextTaker: String
 )
 
 /**
@@ -33,10 +33,10 @@ data class TakeTurn(
  */
 object Matches : Table() {
     val id = long("id").primaryKey().autoIncrement()
-    val created_by = long("created_by")
+    val created_by = text("created_by")
     val room_id = long("room_id")
     val players = text("players").nullable()
-    val winner_id = long("winner_id").nullable()
+    val winner_id = text("winner_id").nullable()
     val points = integer("points").default(0)
     val status = varchar("status", 20).default(MatchStatus.WAITING.toString())
     val created_at = long("created_at")

@@ -5,7 +5,7 @@ import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.Users
 import org.jetbrains.exposed.sql.ResultRow
 
-fun ResultRow.toRoom(members: List<Long> = emptyList(), leaderboards: List<Leaderboard> = emptyList()): Room =
+fun ResultRow.toRoom(members: List<String> = emptyList(), leaderboards: List<Leaderboard> = emptyList()): Room =
     Room(
         this[Rooms.id],
         this[Rooms.name],
@@ -19,7 +19,6 @@ fun ResultRow.toUser(token: String? = null, rooms: List<Room> = emptyList()): Us
     User(
         this[Users.id],
         this[Users.name],
-        this[Users.email],
         token,
         rooms
     )
@@ -31,19 +30,13 @@ fun ResultRow.toToken(): Token =
         this[Tokens.user_id]
     )
 
-fun ResultRow.toPassword(): Password =
-    Password(
-        this[Passwords.user_id],
-        this[Passwords.password]
-    )
-
 fun ResultRow.toMatch(): Match =
     Match(
         this[Matches.id],
         this[Matches.room_id],
         this[Matches.created_by],
         this[Matches.players]?.toPlayers() ?: mutableListOf(),
-        this[Matches.winner_id] ?: 0L,
+        this[Matches.winner_id] ?: "",
         this[Matches.status]
     )
 

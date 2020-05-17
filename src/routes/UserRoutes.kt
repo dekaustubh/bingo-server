@@ -4,14 +4,13 @@ import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.Error
 import com.dekaustubh.models.Success
 import com.dekaustubh.models.User.LoginRequest
-import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.UserResult
 import com.dekaustubh.repositories.UserRepository
-import com.dekaustubh.utils.md5
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.*
+import io.ktor.request.path
+import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.get
@@ -34,20 +33,9 @@ fun Routing.userRoutes(userRepository: UserRepository) {
 
             post("/register") {
                 val loginRequest = call.receive<LoginRequest>()
-                val isPresent = userRepository.isUserPresentWithEmail(loginRequest.email)
-                if (isPresent) {
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        UserResult(
-                            error = Error(error = "User already exists with this email"),
-                            user = null
-                        )
-                    )
-                    return@post
-                }
+                val user = userRepository.register(userName = loginRequest.name, userId = loginRequest.id)
 
-                val addedUser = userRepository.register(loginRequest.name ?: "UNNAMED", loginRequest.email, loginRequest.password.md5())
-                addedUser?.let {
+                user?.let {
                     call.respond(
                         HttpStatusCode.Created,
                         UserResult(
@@ -68,19 +56,7 @@ fun Routing.userRoutes(userRepository: UserRepository) {
 
             post("/login") {
                 val loginRequest = call.receive<LoginRequest>()
-                val isPresent = userRepository.isUserPresentWithEmail(loginRequest.email)
-                if (!isPresent) {
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        UserResult(
-                            error = Error(error = "User not present"),
-                            user = null
-                        )
-                    )
-                    return@post
-                }
-
-                val user = userRepository.login(loginRequest.email, loginRequest.password.md5())
+                val user = userRepository.login(loginRequest.id)
                 user?.let {
                     call.respond(
                         HttpStatusCode.Created,
@@ -102,7 +78,7 @@ fun Routing.userRoutes(userRepository: UserRepository) {
 
             get("/{id}") {
                 val id = call.parameters["id"]
-                val user = userRepository.getUserById(id?.toLong() ?: 0L)
+                val user = userRepository.getUserById(id ?: "")
                 user?.let {
                     call.respond(
                         HttpStatusCode.OK,

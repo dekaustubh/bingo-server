@@ -5,7 +5,7 @@ import com.dekaustubh.constants.Separator
 /**
  * Extension function to convert list of Long to Comma separated string.
  */
-fun List<Long>.toStringPlayers(): String {
+fun List<String>.toStringPlayers(): String {
     val builder = StringBuilder()
     forEachIndexed { index, id ->
         builder.append(id)
@@ -17,9 +17,9 @@ fun List<Long>.toStringPlayers(): String {
 /**
  * Extension function to convert string with comma separated values to list of Long.
  */
-fun String.toPlayers(): MutableList<Long> {
+fun String.toPlayers(): MutableList<String> {
     val list = split(Separator.COMMA)
-    val userIds = mutableListOf<Long>()
-    list.forEach { userIds.add(it.toLong()) }
+    val userIds = mutableListOf<String>()
+    list.forEach { userIds.add(it) }
     return userIds
 }

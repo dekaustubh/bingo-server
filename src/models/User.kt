@@ -12,31 +12,30 @@ import org.jetbrains.exposed.sql.Table
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class User(
-    val id: Long,
+    val id: String,
     val name: String,
-    val email: String,
     val token: String? = null,
     val rooms: List<Room>? = null
 )
 
 data class LoginRequest(
-    val name: String?,
-    val email: String,
-    val password: String
+    val name: String,
+    val id: String,
+    val token: String? = null
 )
 
 /**
  * User database table.
  */
 object Users : Table() {
-    val id = long("id").primaryKey().autoIncrement()
+    val id = text("id").primaryKey()
     val name = varchar("name", 255)
-    val email = varchar("email", 50)
+    val token = text("token")
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)
     init {
-        index(true, email)
+        index(true, id)
     }
 }
 

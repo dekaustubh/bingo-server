@@ -121,7 +121,7 @@ fun Routing.matchRoutes(
                 userIds.add(user.id)
                 val newMatch = matchRepository.updateMatch(
                     matchId,
-                    0L,
+                    "",
                     MatchStatus.valueOf(oldMatch.status),
                     userIds
                 )

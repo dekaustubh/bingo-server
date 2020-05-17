@@ -20,7 +20,7 @@ interface MatchRepository {
      * Creates a new match with [createdBy].
      * @return [Match] if successfully created, null otherwise.
      */
-    fun createMatch(createdBy: Long, roomId: Long): Match?
+    fun createMatch(createdBy: String, roomId: Long): Match?
 
     /**
      * Fetches a match with id [matchId].
@@ -32,7 +32,7 @@ interface MatchRepository {
      * User with [userId] joins a match specified with [matchId].
      * @return Updated [Match] if successfully joined, null otherwise.
      */
-    fun joinMatch(matchId: Long, userId: Long): Match?
+    fun joinMatch(matchId: Long, userId: String): Match?
 
     /**
      * Update a match specified with [matchId].
@@ -40,9 +40,9 @@ interface MatchRepository {
      */
     fun updateMatch(
         matchId: Long,
-        winnerId: Long,
+        winnerId: String,
         matchStatus: MatchStatus,
-        userIds: List<Long> = emptyList(),
+        userIds: List<String> = emptyList(),
         winnerPoints: Int = 0
     ): Match?
 
@@ -55,11 +55,11 @@ interface MatchRepository {
     /**
      * Update match with win status.
      */
-    fun winMatch(matchId: Long, winnerId: Long, points: Int): Match?
+    fun winMatch(matchId: Long, winnerId: String, points: Int): Match?
 }
 
 class MatchRepositoryImpl() : MatchRepository {
-    override fun createMatch(createdBy: Long, roomId: Long): Match? {
+    override fun createMatch(createdBy: String, roomId: Long): Match? {
         var key = 0L
         transaction {
             key = (Matches.insert {
@@ -85,25 +85,25 @@ class MatchRepositoryImpl() : MatchRepository {
         return match
     }
 
-    override fun joinMatch(matchId: Long, userId: Long): Match? {
+    override fun joinMatch(matchId: Long, userId: String): Match? {
         val match = getMatchById(matchId)
         match?.let {
             val players = match.players
             players.add(userId)
-            return updateMatch(matchId, 0, MatchStatus.valueOf(match.status), players)
+            return updateMatch(matchId, "", MatchStatus.valueOf(match.status), players)
         } ?: return null
     }
 
     override fun updateMatch(
         matchId: Long,
-        winnerId: Long,
+        winnerId: String,
         matchStatus: MatchStatus,
-        userIds: List<Long>,
+        userIds: List<String>,
         winnerPoints: Int
     ): Match? {
         transaction {
             Matches.update({ (Matches.id eq matchId) and (Matches.deleted_at eq 0) }) {
-                if (winnerId != 0L) it[winner_id] = winnerId
+                if (winnerId != "") it[winner_id] = winnerId
                 it[points] = winnerPoints
                 it[status] = matchStatus.toString()
                 it[players] = userIds.toStringPlayers()
@@ -127,7 +127,7 @@ class MatchRepositoryImpl() : MatchRepository {
         return getMatchById(matchId)
     }
 
-    override fun winMatch(matchId: Long, winnerId: Long, points: Int): Match? {
+    override fun winMatch(matchId: Long, winnerId: String, points: Int): Match? {
         transaction {
             Matches.update({ (Matches.id eq matchId) and (Matches.deleted_at eq 0) }) {
                 it[status] = MatchStatus.ENDED.toString()

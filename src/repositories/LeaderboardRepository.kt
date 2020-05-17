@@ -14,9 +14,9 @@ import org.jetbrains.exposed.sql.update
 interface LeaderboardRepository {
     fun getLeaderboardForRoom(roomId: Long, limit: Int = LIMIT, offset: Int = OFFSET): List<Leaderboard>
 
-    fun updateLeaderboardForRoom(roomId: Long, userId: Long, points: Int): Leaderboard?
+    fun updateLeaderboardForRoom(roomId: Long, userId: String, points: Int): Leaderboard?
 
-    fun getUserInLeaderboard(roomId: Long, userId: Long): Leaderboard?
+    fun getUserInLeaderboard(roomId: Long, userId: String): Leaderboard?
 }
 
 class LeaderboardRepositoryImpl() : LeaderboardRepository {
@@ -30,7 +30,7 @@ class LeaderboardRepositoryImpl() : LeaderboardRepository {
         return leaders
     }
 
-    override fun updateLeaderboardForRoom(roomId: Long, userId: Long, points: Int): Leaderboard? {
+    override fun updateLeaderboardForRoom(roomId: Long, userId: String, points: Int): Leaderboard? {
         transaction {
             Leaderboards.update({ (Leaderboards.room_id eq roomId) and (Leaderboards.user_id eq userId) }) {
                 it[Leaderboards.points] = points
@@ -40,7 +40,7 @@ class LeaderboardRepositoryImpl() : LeaderboardRepository {
         return getUserInLeaderboard(roomId, userId)
     }
 
-    override fun getUserInLeaderboard(roomId: Long, userId: Long): Leaderboard? {
+    override fun getUserInLeaderboard(roomId: Long, userId: String): Leaderboard? {
         var leaderboard : Leaderboard? = null
         transaction {
             leaderboard = Leaderboards.select { (Leaderboards.room_id eq roomId) and (Leaderboards.user_id eq userId) }

@@ -13,10 +13,10 @@ data class Room(
     val id: Long,
     val name: String,
     @JsonProperty("leaderboard_id")
-    val leaderboardId: Long,
+    val leaderboardId: String,
     @JsonProperty("created_by")
-    val createdBy: Long,
-    val members: List<Long>,
+    val createdBy: String,
+    val members: List<String>,
     val leaderboards: List<Leaderboard>
 )
 
@@ -30,8 +30,8 @@ data class CreateRoomRequest(
 object Rooms : Table() {
     val id = long("id").primaryKey().autoIncrement()
     val name = varchar("name", 255)
-    val leaderboard_id = long("leaderboard_id")
-    val created_by = long("created_by")
+    val leaderboard_id = text("leaderboard_id")
+    val created_by = text("created_by")
     val created_at = long("created_at")
     val deleted_at = long("deleted_at").default(0)
     val updated_at = long("updated_at").default(0)
