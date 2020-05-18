@@ -10,6 +10,8 @@ import com.dekaustubh.models.RoomMembers
 import com.dekaustubh.models.Rooms
 import com.dekaustubh.models.User.User
 import com.dekaustubh.models.User.Users
+import com.dekaustubh.models.UserDevices
+import com.dekaustubh.models.UserDevices.device_id
 import com.dekaustubh.utils.TimeUtil
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.and
@@ -27,7 +29,7 @@ interface UserRepository {
      * Creates a row in Users database table.
      * @return [User] if successfully created, null otherwise.
      */
-    suspend fun register(userName: String, userId: String): User?
+    suspend fun register(userName: String, userId: String, deviceId: String): User?
 
     /**
      * Fetches user with specific [id].
@@ -40,6 +42,12 @@ interface UserRepository {
      * @return [User] if found, null otherwise.
      */
     suspend fun getUserFromToken(token: String): User?
+
+    /**
+     * Updates user's device.
+     * return same [User].
+     */
+    suspend fun updateUserDevice(user: User, deviceId: String): User
 
     /**
      * Deletes user specified by [id].
@@ -56,7 +64,7 @@ interface UserRepository {
 }
 
 class UserRepositoryImpl() : UserRepository {
-    override suspend fun register(userName: String, userId: String): User? {
+    override suspend fun register(userName: String, userId: String, deviceId: String): User? {
         try {
             transaction {
                 Users.insert {
@@ -65,6 +73,13 @@ class UserRepositoryImpl() : UserRepository {
                     it[token] = UUID.randomUUID().toString()
                     it[created_at] = TimeUtil.getCurrentUtcMillis()
                 }
+
+                UserDevices.insert {
+                    it[device_id] = deviceId
+                    it[user_id] = userId
+                    it[created_at] = TimeUtil.getCurrentUtcMillis()
+                }
+
                 commit()
             }
 
@@ -78,6 +93,7 @@ class UserRepositoryImpl() : UserRepository {
     override suspend fun getUserById(id: String): User? {
         var user: User? = null
         val rooms = mutableListOf<Room>()
+        var deviceId = ""
 
         transaction {
             user = Users
@@ -92,13 +108,19 @@ class UserRepositoryImpl() : UserRepository {
                 .limit(LIMIT, OFFSET)
                 .orderBy(Rooms.created_at)
                 .forEach { rooms.add(it.toRoom()) }
+
+            UserDevices
+                .select { (UserDevices.user_id eq userId) and (UserDevices.deleted_at eq 0) }
+                .limit(1)
+                .forEach { deviceId = it[device_id] }
         }
-        return user?.let { User(it.id, it.name, it.token, it.rooms) }
+        return user?.let { User(it.id, it.name, it.token, it.rooms, deviceId) }
     }
 
     override suspend fun getUserFromToken(token: String): User? {
         var user: User? = null
         val rooms = mutableListOf<Room>()
+        var deviceId = ""
 
         transaction {
             user = Users
@@ -113,8 +135,22 @@ class UserRepositoryImpl() : UserRepository {
                 .limit(LIMIT, OFFSET)
                 .orderBy(Rooms.created_at)
                 .forEach { rooms.add(it.toRoom()) }
+
+            UserDevices
+                .select { (UserDevices.user_id eq userId) and (UserDevices.deleted_at eq 0) }
+                .limit(1)
+                .forEach { deviceId = it[device_id] }
         }
-        return user?.let { User(it.id, it.name, it.token, it.rooms) }
+        return user?.let { User(it.id, it.name, it.token, it.rooms, deviceId) }
+    }
+
+    override suspend fun updateUserDevice(user: User, deviceId: String): User {
+        transaction {
+            UserDevices.update({ UserDevices.user_id eq user.id }) {
+                it[device_id] = deviceId
+            }
+        }
+        return User(user.id, user.name, user.token, user.rooms, deviceId)
     }
 
     override suspend fun removeUserById(id: String): Boolean {

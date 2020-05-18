@@ -5,6 +5,7 @@ import io.ktor.util.AttributeKey
 
 object Request {
     const val TOKEN = "token"
+    const val DEVICE_ID = "device_id"
 }
 
 object Response {

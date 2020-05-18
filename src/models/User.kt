@@ -5,6 +5,7 @@ import com.dekaustubh.models.Room
 import com.dekaustubh.models.Success
 import com.fasterxml.jackson.annotation.JsonClassDescription
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.jetbrains.exposed.sql.Table
 
 /**
@@ -15,13 +16,16 @@ data class User(
     val id: String,
     val name: String,
     val token: String? = null,
-    val rooms: List<Room>? = null
+    val rooms: List<Room>? = null,
+    @JsonProperty("device_id")
+    val deviceId: String? = null
 )
 
 data class LoginRequest(
     val name: String,
     val id: String,
-    val token: String? = null
+    @JsonProperty("device_id")
+    val deviceId: String
 )
 
 /**

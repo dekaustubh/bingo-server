@@ -1,0 +1,25 @@
+package com.dekaustubh.models
+
+import com.dekaustubh.models.User.Users
+import com.fasterxml.jackson.annotation.JsonProperty
+import org.jetbrains.exposed.sql.Table
+
+data class UserDevice(
+    val id: Long,
+    @JsonProperty("device_id")
+    val deviceId: String,
+    @JsonProperty("user_id")
+    val userId: String
+)
+
+/**
+ * UserDevices database table.
+ */
+object UserDevices : Table() {
+    val id = long("id").primaryKey().autoIncrement()
+    val user_id = text("user_id") references Users.id
+    val device_id = text("device_id")
+    val created_at = long("created_at")
+    val deleted_at = long("deleted_at").default(0)
+    val updated_at = long("updated_at").default(0)
+}

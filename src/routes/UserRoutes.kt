@@ -1,5 +1,7 @@
 package com.dekaustubh.routes
 
+import com.dekaustubh.constants.Request
+import com.dekaustubh.constants.Response
 import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.Error
 import com.dekaustubh.models.Success
@@ -9,13 +11,11 @@ import com.dekaustubh.repositories.UserRepository
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
+import io.ktor.request.header
 import io.ktor.request.path
 import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.routing.Routing
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.route
+import io.ktor.routing.*
 
 /**
  * All users related routes.
@@ -33,7 +33,7 @@ fun Routing.userRoutes(userRepository: UserRepository) {
 
             post("/register") {
                 val loginRequest = call.receive<LoginRequest>()
-                val user = userRepository.register(userName = loginRequest.name, userId = loginRequest.id)
+                val user = userRepository.register(userName = loginRequest.name, userId = loginRequest.id, deviceId = loginRequest.deviceId)
 
                 user?.let {
                     call.respond(
@@ -54,26 +54,27 @@ fun Routing.userRoutes(userRepository: UserRepository) {
                 }
             }
 
-            post("/login") {
-                val loginRequest = call.receive<LoginRequest>()
-                val user = userRepository.login(loginRequest.id)
-                user?.let {
+            put("/device") {
+                val deviceId = call.request.header(Request.DEVICE_ID)
+                if (deviceId.isNullOrEmpty()) {
                     call.respond(
-                        HttpStatusCode.Created,
+                        HttpStatusCode.NotFound,
                         UserResult(
-                            success = Success(success = "User login successful"),
-                            user = it
-                        )
-                    )
-                } ?: run {
-                    call.respond(
-                        HttpStatusCode.InternalServerError,
-                        UserResult(
-                            error = Error(error = "Could not login user"),
+                            error = Error(error = "User not present"),
                             user = null
                         )
                     )
+                    return@put
                 }
+                val user = call.attributes[Response.USER_ATTR]
+                val updatedUser = userRepository.updateUserDevice(user, deviceId)
+                call.respond(
+                    HttpStatusCode.OK,
+                    UserResult(
+                        success = Success(success = "User fetched"),
+                        user = updatedUser
+                    )
+                )
             }
 
             get("/{id}") {
