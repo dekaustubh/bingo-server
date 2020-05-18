@@ -112,13 +112,12 @@ fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepo
 
             get("/") {
                 val user = call.attributes[USER_ATTR]
-                val rooms = roomRepository.getAllRoomsForUser(user.id)
 
                 call.respond(
                     HttpStatusCode.OK,
                     RoomsResult(
                         success = Success(success = "Rooms fetched"),
-                        rooms = rooms
+                        rooms = user.rooms ?: emptyList()
                     )
                 )
             }

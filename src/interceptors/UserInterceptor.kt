@@ -24,7 +24,7 @@ suspend inline fun PipelineContext<*, ApplicationCall>.userInterceptor(userRepos
         )
         return finish()
     } else {
-        val user = userRepository.getUserById(token)
+        val user = userRepository.getUserFromToken(token)
         if (user == null) {
             call.respond(
                 HttpStatusCode.Forbidden,

@@ -15,19 +15,12 @@ fun ResultRow.toRoom(members: List<String> = emptyList(), leaderboards: List<Lea
         leaderboards
     )
 
-fun ResultRow.toUser(token: String? = null, rooms: List<Room> = emptyList()): User =
+fun ResultRow.toUser(rooms: List<Room> = emptyList()): User =
     User(
         this[Users.id],
         this[Users.name],
-        token,
+        this[Users.token],
         rooms
-    )
-
-fun ResultRow.toToken(): Token =
-    Token(
-        this[Tokens.id],
-        this[Tokens.token],
-        this[Tokens.user_id]
     )
 
 fun ResultRow.toMatch(): Match =

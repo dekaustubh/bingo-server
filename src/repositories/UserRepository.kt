@@ -36,6 +36,12 @@ interface UserRepository {
     suspend fun getUserById(id: String): User?
 
     /**
+     * Fetches user with specific [token].
+     * @return [User] if found, null otherwise.
+     */
+    suspend fun getUserFromToken(token: String): User?
+
+    /**
      * Deletes user specified by [id].
      * Note: This is not a hard delete, only [User#deleted_at] field is set, i.e. a soft delete.
      * @return [true] if user is deleted, false otherwise.
@@ -76,6 +82,27 @@ class UserRepositoryImpl() : UserRepository {
         transaction {
             user = Users
                 .select { (Users.id eq id) and (Users.deleted_at eq 0) }
+                .mapNotNull { it.toUser() }
+                .singleOrNull()
+
+            val userId = user?.id ?: ""
+            Rooms.innerJoin(RoomMembers)
+                .slice(Rooms.columns)
+                .select { Rooms.id.eq(RoomMembers.room_id) and (RoomMembers.user_id.eq(userId)) }
+                .limit(LIMIT, OFFSET)
+                .orderBy(Rooms.created_at)
+                .forEach { rooms.add(it.toRoom()) }
+        }
+        return user?.let { User(it.id, it.name, it.token, it.rooms) }
+    }
+
+    override suspend fun getUserFromToken(token: String): User? {
+        var user: User? = null
+        val rooms = mutableListOf<Room>()
+
+        transaction {
+            user = Users
+                .select { (Users.token eq token) and (Users.deleted_at eq 0) }
                 .mapNotNull { it.toUser() }
                 .singleOrNull()
 
