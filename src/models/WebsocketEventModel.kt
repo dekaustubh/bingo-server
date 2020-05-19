@@ -10,8 +10,10 @@ sealed class WebsocketEvent(
 
 data class UserConnected(
     @JsonProperty("user_id")
-    val userId: String
-): WebsocketEvent(MessageType.CONNECT)
+    val userId: String,
+    @JsonProperty("message_type")
+    val messageType: MessageType
+)
 
 data class UserJoined(
     @JsonProperty("user_id")

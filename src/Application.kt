@@ -80,6 +80,7 @@ fun Application.module(testing: Boolean = false) {
                 }
             } catch (e: Exception) {
                 println("Got error $e")
+                e.printStackTrace()
             } finally {
                 // TODO...
             }

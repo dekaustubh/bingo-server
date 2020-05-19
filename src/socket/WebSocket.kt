@@ -35,6 +35,10 @@ class WebSocket {
         // But since this is a sample we are not doing it.
         val list = members.computeIfAbsent(userId) { CopyOnWriteArrayList<WebSocketSession>() }
         list.add(socket)
+        println("members list => ")
+        members.forEach {
+            println("MemberId : ${it.key}")
+        }
     }
 
     /**

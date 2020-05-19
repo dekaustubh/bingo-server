@@ -114,7 +114,7 @@ class UserRepositoryImpl() : UserRepository {
                 .limit(1)
                 .forEach { deviceId = it[device_id] }
         }
-        return user?.let { User(it.id, it.name, it.token, it.rooms, deviceId) }
+        return user?.let { User(it.id, it.name, it.token, rooms, deviceId) }
     }
 
     override suspend fun getUserFromToken(token: String): User? {
@@ -141,7 +141,7 @@ class UserRepositoryImpl() : UserRepository {
                 .limit(1)
                 .forEach { deviceId = it[device_id] }
         }
-        return user?.let { User(it.id, it.name, it.token, it.rooms, deviceId) }
+        return user?.let { User(it.id, it.name, it.token, rooms, deviceId) }
     }
 
     override suspend fun updateUserDevice(user: User, deviceId: String): User {
