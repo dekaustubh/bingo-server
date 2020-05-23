@@ -56,9 +56,10 @@ fun Application.module(testing: Boolean = false) {
     install(Routing) {
         val userRepository = UserRepositoryImpl()
         val leaderboardRepository = LeaderboardRepositoryImpl()
+        val roomRepository = RoomRepositoryImpl()
         userRoutes(userRepository)
-        roomsRoutes(RoomRepositoryImpl(), userRepository)
-        matchRoutes(MatchRepositoryImpl(), userRepository, leaderboardRepository, webSocket, mapper)
+        roomsRoutes(roomRepository, userRepository)
+        matchRoutes(MatchRepositoryImpl(), userRepository, roomRepository, leaderboardRepository, webSocket, mapper)
     }
 
     routing {

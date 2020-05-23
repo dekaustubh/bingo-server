@@ -63,6 +63,11 @@ interface RoomRepository {
      * @return Updated [Room], null otherwise.
      */
     suspend fun joinRoom(roomId: Long, userId: String): Room?
+
+    /**
+     * Gets all the joinees of the room
+     */
+    fun getRoomMembers(roomId: Long): List<String>
 }
 
 class RoomRepositoryImpl() : RoomRepository {
@@ -186,11 +191,12 @@ class RoomRepositoryImpl() : RoomRepository {
         return getRoomById(roomId)
     }
 
-    private fun getRoomMembers(roomId: Long, limit: Int = LIMIT, offset: Int = OFFSET): List<String> {
+    override fun getRoomMembers(roomId: Long): List<String> {
         val members = mutableListOf<String>()
-        RoomMembers.select { RoomMembers.room_id.eq(roomId) }
-            .limit(limit, offset)
-            .forEach { members.add(it[RoomMembers.user_id]) }
+        transaction {
+            RoomMembers.select { RoomMembers.room_id.eq(roomId) }
+                .forEach { members.add(it[RoomMembers.user_id]) }
+        }
         return members
     }
 }

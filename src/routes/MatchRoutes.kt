@@ -5,6 +5,7 @@ import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.*
 import com.dekaustubh.repositories.LeaderboardRepository
 import com.dekaustubh.repositories.MatchRepository
+import com.dekaustubh.repositories.RoomRepository
 import com.dekaustubh.repositories.UserRepository
 import com.dekaustubh.socket.WebSocket
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -14,6 +15,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.*
+import java.lang.IllegalArgumentException
 
 /**
  * All match related routes.
@@ -21,6 +23,7 @@ import io.ktor.routing.*
 fun Routing.matchRoutes(
     matchRepository: MatchRepository,
     userRepository: UserRepository,
+    roomRepository: RoomRepository,
     leaderboardRepository: LeaderboardRepository,
     webSocket: WebSocket,
     mapper: ObjectMapper
@@ -47,6 +50,22 @@ fun Routing.matchRoutes(
                 val roomId = call.parameters["roomId"]!!.toLong()
 
                 val addedMatch = matchRepository.createMatch(user.id, roomId)
+
+                val participants = roomRepository.getRoomMembers(roomId)
+                participants.forEach {
+                    webSocket.sendTo(
+                        it,
+                        mapper.writeValueAsString(
+                            MatchCreated(
+                                userId = user.id,
+                                userName = user.name,
+                                matchId = addedMatch?.id ?: throw IllegalArgumentException("Match should not be null"),
+                                roomId = roomId
+                            )
+                        )
+                    )
+                }
+
                 addedMatch?.let {
                     call.respond(
                         HttpStatusCode.Created,
