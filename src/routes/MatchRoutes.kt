@@ -178,6 +178,7 @@ fun Routing.matchRoutes(
             post("/{matchId}/start") {
                 val matchId = call.parameters["matchId"]?.toLong() ?: 0L
                 val user = call.attributes[USER_ATTR]
+                val roomId = call.parameters["roomId"]!!.toLong()
 
                 val match = matchRepository.updateMatchStatus(matchId, MatchStatus.STARTED)
 
@@ -188,7 +189,7 @@ fun Routing.matchRoutes(
                             webSocket.sendTo(
                                 id,
                                 mapper.writeValueAsString(
-                                    MatchStarted(userId = user.id, userName = user.name, matchId = m.id)
+                                    MatchStarted(userId = user.id, userName = user.name, matchId = m.id, roomId = roomId)
                                 )
                             )
                         }
