@@ -111,6 +111,7 @@ fun Routing.matchRoutes(
             put("/{matchId}/join") {
                 val matchId = call.parameters["matchId"]?.toLong() ?: 0L
                 val user = call.attributes[USER_ATTR]
+                val roomId = call.parameters["roomId"]?.toLong() ?: 0L
                 val oldMatch = matchRepository.getMatchById(matchId)
 
                 if (oldMatch?.status != MatchStatus.WAITING.toString()) {
@@ -152,7 +153,7 @@ fun Routing.matchRoutes(
                             webSocket.sendTo(
                                 id,
                                 mapper.writeValueAsString(
-                                    UserJoined(userId = user.id, userName = user.name, matchId = m.id)
+                                    MatchJoined(userId = user.id, userName = user.name, matchId = m.id, roomId = roomId)
                                 )
                             )
                         }
@@ -214,6 +215,7 @@ fun Routing.matchRoutes(
 
             put("/{matchId}/takeTurn") {
                 val matchId = call.parameters["matchId"]?.toLong() ?: 0L
+                val roomId = call.parameters["roomId"]?.toLong() ?: 0L
                 val user = call.attributes[USER_ATTR]
                 val match = matchRepository.getMatchById(matchId)
                 val turn = call.receive<TakeTurn>()
@@ -232,6 +234,7 @@ fun Routing.matchRoutes(
                     match.players.size -> match.players[0]
                     else -> match.players[index + 1]
                 }
+                val nextUser = userRepository.getBasicUser(next)
 
                 match.players
                     .filter { it != user.id }
@@ -239,11 +242,12 @@ fun Routing.matchRoutes(
                         webSocket.sendTo(
                             id,
                             mapper.writeValueAsString(
-                                TurnTaken(
+                                MatchTurn(
                                     userId = user.id,
                                     userName = user.name,
                                     matchId = matchId,
-                                    nextTurn = next,
+                                    roomId = roomId,
+                                    nextTurn = nextUser,
                                     number = turn.number
                                 )
                             )
@@ -317,8 +321,9 @@ fun Routing.matchRoutes(
                                 mapper.writeValueAsString(
                                     MatchWon(
                                         userId = user.id,
-                                        roomId = roomId,
-                                        points = points
+                                        points = points,
+                                        matchId = matchId,
+                                        roomId = roomId
                                     )
                                 )
                             )

@@ -2,19 +2,13 @@ package com.dekaustubh
 
 import com.dekaustubh.db.DatabaseFactory
 import com.dekaustubh.models.UserConnected
-import com.dekaustubh.models.UserJoined
 import com.dekaustubh.repositories.*
 import com.dekaustubh.routes.matchRoutes
 import com.dekaustubh.routes.roomsRoutes
 import com.dekaustubh.routes.userRoutes
 import com.dekaustubh.socket.WebSocket
 import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.request.*
 import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.content.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.websocket.*
 import io.ktor.http.cio.websocket.*

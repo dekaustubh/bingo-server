@@ -1,13 +1,12 @@
 package com.dekaustubh.socket
 
 enum class MessageType {
-    JOIN,
+    MATCH_JOIN,
     MATCH_CREATE,
-    START,
-    LEAVE,
-    TAKE_TURN,
-    UPDATE,
-    WIN,
+    MATCH_START,
+    MATCH_LEFT,
+    MATCH_TURN,
+    MATCH_WON,
     HEARTBEAT,
     CONNECT
 }

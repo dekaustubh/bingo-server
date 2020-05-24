@@ -61,6 +61,12 @@ interface UserRepository {
      * @return [User] if successfully found, null otherwise.
      */
     suspend fun login(userId: String): User?
+
+    /**
+     * Fetches user with specific [id] but with only name & id.
+     * @return [User] if found, null otherwise.
+     */
+    suspend fun getBasicUser(userId: String): User?
 }
 
 class UserRepositoryImpl() : UserRepository {
@@ -165,5 +171,17 @@ class UserRepositoryImpl() : UserRepository {
 
     override suspend fun login(userId: String): User? {
         return getUserById(userId)
+    }
+
+    override suspend fun getBasicUser(userId: String): User? {
+        var user: User? = null
+
+        transaction {
+            user = Users
+                .select { (Users.id eq userId) and (Users.deleted_at eq 0) }
+                .mapNotNull { it.toUser() }
+                .singleOrNull()
+        }
+        return user?.let { User(it.id, it.name) }
     }
 }
