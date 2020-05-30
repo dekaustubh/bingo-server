@@ -26,11 +26,12 @@ fun ResultRow.toUser(rooms: List<Room> = emptyList()): User =
 fun ResultRow.toMatch(): Match =
     Match(
         this[Matches.id],
+        this[Matches.name],
         this[Matches.room_id],
         this[Matches.created_by],
         this[Matches.players]?.toPlayers() ?: mutableListOf(),
         this[Matches.winner_id] ?: "",
-        this[Matches.status]
+        MatchStatus.valueOf(this[Matches.status])
     )
 
 fun ResultRow.toLeaderboard(): Leaderboard =

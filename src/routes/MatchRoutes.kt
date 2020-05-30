@@ -16,6 +16,7 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.*
 import java.lang.IllegalArgumentException
+import java.lang.IllegalStateException
 
 /**
  * All match related routes.
@@ -47,9 +48,10 @@ fun Routing.matchRoutes(
 
             post("/create") {
                 val user = call.attributes[USER_ATTR]
+                val name = call.request.queryParameters["name"] ?: throw IllegalStateException("Match name must be present")
                 val roomId = call.parameters["roomId"]!!.toLong()
 
-                val addedMatch = matchRepository.createMatch(user.id, roomId)
+                val addedMatch = matchRepository.createMatch(user.id, roomId, name)
 
                 val participants = roomRepository.getRoomMembers(roomId)
                 participants.forEach {
@@ -114,7 +116,7 @@ fun Routing.matchRoutes(
                 val roomId = call.parameters["roomId"]?.toLong() ?: 0L
                 val oldMatch = matchRepository.getMatchById(matchId)
 
-                if (oldMatch?.status != MatchStatus.WAITING.toString()) {
+                if (oldMatch?.status != MatchStatus.WAITING) {
                     call.respond(
                         HttpStatusCode.BadRequest,
                         MatchResult(
@@ -142,7 +144,7 @@ fun Routing.matchRoutes(
                 val newMatch = matchRepository.updateMatch(
                     matchId,
                     "",
-                    MatchStatus.valueOf(oldMatch.status),
+                    oldMatch.status,
                     userIds
                 )
 
@@ -270,7 +272,7 @@ fun Routing.matchRoutes(
                 val match = matchRepository.updateMatch(
                     matchId,
                     oldMatch.winnerId,
-                    MatchStatus.valueOf(oldMatch.status),
+                    oldMatch.status,
                     oldMatch.players,
                     0
                 )

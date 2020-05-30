@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.Table
  */
 data class Match(
     val id: Long,
+    val name: String,
     @JsonProperty("room_id")
     val roomId: Long,
     @JsonProperty("created_by")
@@ -17,7 +18,8 @@ data class Match(
     val players: MutableList<String>,
     @JsonProperty("winner_id")
     val winnerId: String,
-    val status: String
+    @JsonProperty("status")
+    val status: MatchStatus
 )
 
 data class TakeTurn(
@@ -33,6 +35,7 @@ data class TakeTurn(
  */
 object Matches : Table() {
     val id = long("id").primaryKey().autoIncrement()
+    val name = varchar("name", 24)
     val created_by = text("created_by")
     val room_id = long("room_id")
     val players = text("players").nullable()

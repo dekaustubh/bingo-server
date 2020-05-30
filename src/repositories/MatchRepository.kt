@@ -20,7 +20,7 @@ interface MatchRepository {
      * Creates a new match with [createdBy].
      * @return [Match] if successfully created, null otherwise.
      */
-    fun createMatch(createdBy: String, roomId: Long): Match?
+    fun createMatch(createdBy: String, roomId: Long, matchName: String): Match?
 
     /**
      * Fetches a match with id [matchId].
@@ -59,10 +59,11 @@ interface MatchRepository {
 }
 
 class MatchRepositoryImpl() : MatchRepository {
-    override fun createMatch(createdBy: String, roomId: Long): Match? {
+    override fun createMatch(createdBy: String, roomId: Long, matchName: String): Match? {
         var key = 0L
         transaction {
             key = (Matches.insert {
+                it[name] = matchName
                 it[created_by] = createdBy
                 it[room_id] = roomId
                 it[players] = createdBy.toString()
@@ -90,7 +91,7 @@ class MatchRepositoryImpl() : MatchRepository {
         match?.let {
             val players = match.players
             players.add(userId)
-            return updateMatch(matchId, "", MatchStatus.valueOf(match.status), players)
+            return updateMatch(matchId, "", match.status, players)
         } ?: return null
     }
 

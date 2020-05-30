@@ -69,8 +69,18 @@ fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepo
             }
 
             get("/{id}/matches") {
-                val id = call.parameters["id"]?.toLong() ?: 0L
-                val matches = roomRepository.getRoomMatches(id)
+                val id = call.parameters["id"]
+                if (id == null) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        RoomResult(
+                            error = Error(error = "Room id not present"),
+                            room = null
+                        )
+                    )
+                    return@get
+                }
+                val matches = roomRepository.getRoomMatches(id.toLong())
                 call.respond(
                     HttpStatusCode.OK,
                     MatchesResult(
