@@ -37,7 +37,7 @@ interface RoomRepository {
      * Fetches user with specific [name].
      * @return List of [Room] if found, empty otherwise.
      */
-    suspend fun searchRoomByName(name: String): List<Room>
+    suspend fun searchRoomByName(name: String, offset: Int = OFFSET, limit: Int = LIMIT): List<Room>
 
     /**
      * Deletes room specified by [id].
@@ -125,12 +125,16 @@ class RoomRepositoryImpl() : RoomRepository {
         return matches
     }
 
-    override suspend fun searchRoomByName(name: String): List<Room> {
+    override suspend fun searchRoomByName(name: String, offset: Int, limit: Int): List<Room> {
         val rooms = mutableListOf<Room>()
+        if (name.isEmpty()) {
+            return rooms
+        }
         transaction {
             rooms.addAll(
                 Rooms
                     .select { Rooms.name like name }
+                    .limit(limit, offset)
                     .mapNotNull { it.toRoom() }
             )
         }

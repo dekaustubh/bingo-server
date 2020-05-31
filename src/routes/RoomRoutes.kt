@@ -1,5 +1,7 @@
 package com.dekaustubh.routes
 
+import com.dekaustubh.constants.Db.LIMIT
+import com.dekaustubh.constants.Db.OFFSET
 import com.dekaustubh.constants.Response.USER_ATTR
 import com.dekaustubh.interceptors.userInterceptor
 import com.dekaustubh.models.*
@@ -130,6 +132,32 @@ fun Routing.roomsRoutes(roomRepository: RoomRepository, userRepository: UserRepo
                         rooms = user.rooms ?: emptyList()
                     )
                 )
+            }
+
+            get("/search") {
+                val query = call.request.queryParameters["query"] ?: ""
+                val limit = call.request.queryParameters["limit"]?.let { it.toInt() } ?: LIMIT
+                val offset = call.request.queryParameters["offset"]?.let { it.toInt() } ?: OFFSET
+
+                val searchedRooms = roomRepository.searchRoomByName("%$query%", offset, limit)
+
+                if (searchedRooms.isEmpty()) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        RoomsResult(
+                            error = Error(error = "Rooms not found matching the query"),
+                            rooms = searchedRooms
+                        )
+                    )
+                } else {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        RoomsResult(
+                            success = Success(success = "Rooms fetched"),
+                            rooms = searchedRooms
+                        )
+                    )
+                }
             }
         }
     }
